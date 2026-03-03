@@ -479,6 +479,71 @@ body {
     border: 1px solid rgba(0, 242, 255, 0.3);
 }
 
+.mobile-sheet {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 1000000;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.mobile-sheet.active {
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.sheet-overlay {
+    position: absolute;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
+}
+
+.sheet-content {
+    position: absolute;
+    bottom: -100%;
+    left: 0; width: 100%;
+    background: #050a14;
+    border-top: 2px solid #00f2ff;
+    border-radius: 20px 20px 0 0;
+    padding: 30px 20px;
+    transition: bottom 0.4s ease;
+    box-shadow: 0 -10px 40px rgba(0, 242, 255, 0.2);
+    box-sizing: border-box;
+}
+
+.mobile-sheet.active .sheet-content { bottom: 0; }
+
+.sheet-handle {
+    width: 50px; height: 4px;
+    background: #00f2ff;
+    border-radius: 10px;
+    margin: -15px auto 20px;
+    opacity: 0.3;
+}
+
+.sheet-content button {
+    display: block;
+    width: 100%;
+    padding: 18px;
+    margin-bottom: 12px;
+    background: rgba(0, 242, 255, 0.1);
+    border: 1px solid #00f2ff;
+    color: #00f2ff;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.btn-cancelar {
+    background: transparent !important;
+    border: none !important;
+    color: #ff0202 !important;
+    margin-top: 10px;
+}
+
 .audio-label {
     font-size: 10px;
     color: #ff9d00;
@@ -664,69 +729,6 @@ input[type="file"] {
     .slot {
         height: 110px;
     }
-
-    /* Estructura del Panel Inferior */
-.mobile-sheet {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    z-index: 999999;
-    visibility: hidden;
-    transition: visibility 0.3s;
-}
-
-.mobile-sheet.active { visibility: visible; }
-
-.sheet-overlay {
-    position: absolute;
-    width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(4px);
-}
-
-.sheet-content {
-    position: absolute;
-    bottom: -100%; /* Empieza afuera de la pantalla */
-    left: 0; width: 100%;
-    background: #050a14;
-    border-top: 3px solid #00f2ff;
-    border-radius: 20px 20px 0 0;
-    padding: 20px;
-    transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-sizing: border-box;
-    text-align: center;
-}
-
-.mobile-sheet.active .sheet-content { bottom: 0; }
-
-.sheet-handle {
-    width: 40px; height: 4px;
-    background: rgba(0, 242, 255, 0.3);
-    border-radius: 2px;
-    margin: 0 auto 15px;
-}
-
-/* Botones del Panel */
-.sheet-content button {
-    display: block;
-    width: 100%;
-    padding: 16px;
-    margin-bottom: 10px;
-    background: rgba(0, 242, 255, 0.05);
-    border: 1px solid rgba(0, 242, 255, 0.3);
-    color: #00f2ff;
-    font-family: 'Courier New', monospace;
-    font-weight: bold;
-    font-size: 16px;
-    border-radius: 8px;
-}
-
-.btn-cancelar {
-    background: transparent !important;
-    border: none !important;
-    color: #666 !important;
-    margin-top: 10px;
-}
 
     /* --- SECCIÓN DE NOTAS (LORE) --- */
     .cuerpo-nota-integrado {
@@ -1060,16 +1062,15 @@ input[type="file"] {
     </div>
 </div>
 
-
 <div id="mobileActionSheet" class="mobile-sheet">
     <div class="sheet-overlay" onclick="cerrarPanelMovil()"></div>
     <div class="sheet-content">
         <div class="sheet-handle"></div>
-        <h3 id="sheetItemTitle" style="color: #00f2ff; margin-bottom: 15px;">OPCIONES DE SISTEMA</h3>
+        <div id="sheetItemTitle" style="color: #00f2ff; font-weight: bold; margin-bottom: 20px; text-transform: uppercase;">Opciones de Equipo</div>
         
         <button onclick="abrirModalStats(itemSeleccionadoGlobal); cerrarPanelMovil();">📊 VER / MEJORAR STATS</button>
-        <button onclick="accionMoverAlBaul(itemSeleccionadoGlobal); cerrarPanelMovil();">📦 MOVER AL BAÚL</button>
-        <button onclick="accionEliminar(itemSeleccionadoGlobal); cerrarPanelMovil();" style="color: #ff4444;">🗑️ ELIMINAR OBJETO</button>
+        <button onclick="accionMoverAlBaul(); cerrarPanelMovil();">📦 MOVER AL BAÚL</button>
+        <button onclick="accionEliminar(); cerrarPanelMovil();" style="color: #ff4444; border-color: #ff4444;">🗑️ ELIMINAR OBJETO</button>
         
         <button onclick="cerrarPanelMovil()" class="btn-cancelar">CANCELAR</button>
     </div>
@@ -1128,32 +1129,46 @@ let editingItem = null; // NUEVO: Para almacenar el ítem que se está editando 
 const SLOT_SIZE = 60; 
 const GAP_SIZE = 6;   
 
-// Variable para saber qué ítem estamos editando
+let toqueTimer;
 let itemSeleccionadoGlobal = null;
+const esCelular = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-function manejarClickItem(e, item) {
-    itemSeleccionadoGlobal = item;
-    
-    // Si es un dispositivo móvil (ancho menor a 900px)
-    if (window.innerWidth <= 900) {
+// --- GESTIÓN DE ITEMS ---
+document.addEventListener('touchstart', function(e) {
+    const item = e.target.closest('.item');
+    if (!item || !esCelular) return;
+
+    // Si es celu, esperamos el long press
+    toqueTimer = setTimeout(() => {
+        if (navigator.vibrate) navigator.vibrate(50); // Vibración de confirmación
+        itemSeleccionadoGlobal = item;
         abrirPanelMovil();
-    } else {
-        // Aquí va tu lógica original de abrirMenuContexto(e, item) para PC
-    }
-}
+    }, 600); 
+}, { passive: true });
 
+document.addEventListener('touchend', () => clearTimeout(toqueTimer));
+document.addEventListener('touchmove', () => clearTimeout(toqueTimer)); // Si desliza, cancelamos
+
+// --- FUNCIONES DEL PANEL ---
 function abrirPanelMovil() {
-    const panel = document.getElementById('mobileActionSheet');
-    panel.classList.add('active');
-    // Bloqueamos el scroll del fondo para que sea más estable
-    document.body.style.overflow = 'hidden';
+    document.getElementById('mobileActionSheet').classList.add('active');
+    document.body.style.overflow = 'hidden'; // Evita scroll de fondo
 }
 
 function cerrarPanelMovil() {
-    const panel = document.getElementById('mobileActionSheet');
-    panel.classList.remove('active');
+    document.getElementById('mobileActionSheet').classList.remove('active');
     document.body.style.overflow = 'auto';
 }
+
+// --- PREVENIR MENÚ NATIVO EN CELU ---
+window.oncontextmenu = function(event) {
+    if (esCelular) {
+        event.preventDefault();
+        event.stopPropagation();
+        return false;
+    }
+};
+
 
 // Vinculación: Asegúrate de que tus ítems tengan onclick="manejarClickItem(event, this)"
 
