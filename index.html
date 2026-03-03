@@ -1054,23 +1054,21 @@ let toqueTimer;
 let itemSeleccionadoGlobal = null;
 const menuC = document.querySelector('.context-menu');
 
-// --- 1. GESTIÓN DEL INVENTARIO (PARA ABRIR EL MENÚ) ---
+// --- 1. ABRIR MENÚ (Long Press en Item) ---
 document.addEventListener('touchstart', function(e) {
     const item = e.target.closest('.item');
     const dentroDelMenu = e.target.closest('.context-menu');
 
-    // Si tocamos el menú, NO hacemos nada aquí (lo maneja el punto 2)
-    if (dentroDelMenu) return;
+    if (dentroDelMenu) return; // Si toca el menú, no hace nada aquí
 
     if (item) {
-        // Long press para abrir menú
         toqueTimer = setTimeout(() => {
             if (navigator.vibrate) navigator.vibrate(50);
-            itemSeleccionadoGlobal = item; // Guardamos el ítem
+            itemSeleccionadoGlobal = item;
             
             menuC.style.display = 'block';
             
-            // Centrar en pantalla si es móvil
+            // Posicionamiento para Celular (Centrado)
             if (window.innerWidth <= 900) {
                 menuC.style.top = "50%";
                 menuC.style.left = "50%";
@@ -1080,40 +1078,51 @@ document.addEventListener('touchstart', function(e) {
                 menuC.style.left = e.touches[0].pageX + "px";
                 menuC.style.transform = "none";
             }
-        }, 700); // 700ms para abrir
+        }, 600);
     } else {
-        // Cerrar si toca fuera
+        // Cerrar si toca cualquier otra parte de la pantalla
         menuC.style.display = 'none';
     }
 }, { passive: false });
 
 document.addEventListener('touchend', () => clearTimeout(toqueTimer));
 
-// --- 2. GESTIÓN DE LOS BOTONES DEL MENÚ (MANTENER PARA ACTIVAR) ---
-// Usamos delegación de eventos para que siempre detecte los botones
+// --- 2. EJECUTAR ACCIONES (Long Press en Botón del Menú) ---
 menuC.addEventListener('touchstart', function(e) {
     const boton = e.target.closest('button');
     if (!boton) return;
 
-    // IMPORTANTE: Prevenimos que el click fantasma cierre el menú
-    e.preventDefault(); 
+    e.preventDefault(); // Bloquea el click fantasma que cierra todo
     
-    // Feedback visual de "cargando acción"
-    boton.style.background = "rgba(0, 242, 255, 0.5)";
-    boton.style.transition = "background 0.5s";
+    // Efecto visual de carga
+    boton.style.background = "rgba(0, 242, 255, 0.6)";
+    boton.style.transition = "background 0.4s";
 
     toqueTimer = setTimeout(() => {
-        if (navigator.vibrate) navigator.vibrate(100); // Vibración más fuerte al activar
+        if (navigator.vibrate) navigator.vibrate(80);
         
-        // Ejecutamos la función que tiene el botón en su onclick
-        const func = boton.getAttribute('onclick');
-        if (func) {
-            // Evaluamos la función manualmente para asegurar que ocurra
-            new Function(func)(); 
+        // --- AQUÍ ESTÁ EL TRUCO ---
+        // Obtenemos el texto del 'onclick' del HTML
+        const accionAtributo = boton.getAttribute('onclick');
+        
+        if (accionAtributo) {
+            // Creamos una función temporal y la ejecutamos pasándole el item
+            try {
+                const ejecutarAccion = new Function('item', accionAtributo);
+                ejecutarAccion(itemSeleccionadoGlobal);
+            } catch (err) {
+                console.error("Error al ejecutar acción:", err);
+                // Si falla lo anterior, intentamos una ejecución directa simple
+                eval(accionAtributo);
+            }
         }
         
         boton.style.background = "";
-    }, 800); // Hay que mantener 800ms el botón para que funcione
+        // Opcional: Cerrar menú después de la acción si no es "Ver Stats"
+        if (!accionAtributo.includes('abrirModalStats')) {
+            menuC.style.display = 'none';
+        }
+    }, 700); // 700ms manteniendo el botón presionado para que funcione
 }, { passive: false });
 
 menuC.addEventListener('touchend', function(e) {
