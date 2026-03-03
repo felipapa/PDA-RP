@@ -665,6 +665,69 @@ input[type="file"] {
         height: 110px;
     }
 
+    /* Estructura del Panel Inferior */
+.mobile-sheet {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 999999;
+    visibility: hidden;
+    transition: visibility 0.3s;
+}
+
+.mobile-sheet.active { visibility: visible; }
+
+.sheet-overlay {
+    position: absolute;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+}
+
+.sheet-content {
+    position: absolute;
+    bottom: -100%; /* Empieza afuera de la pantalla */
+    left: 0; width: 100%;
+    background: #050a14;
+    border-top: 3px solid #00f2ff;
+    border-radius: 20px 20px 0 0;
+    padding: 20px;
+    transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.mobile-sheet.active .sheet-content { bottom: 0; }
+
+.sheet-handle {
+    width: 40px; height: 4px;
+    background: rgba(0, 242, 255, 0.3);
+    border-radius: 2px;
+    margin: 0 auto 15px;
+}
+
+/* Botones del Panel */
+.sheet-content button {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    margin-bottom: 10px;
+    background: rgba(0, 242, 255, 0.05);
+    border: 1px solid rgba(0, 242, 255, 0.3);
+    color: #00f2ff;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    font-size: 16px;
+    border-radius: 8px;
+}
+
+.btn-cancelar {
+    background: transparent !important;
+    border: none !important;
+    color: #666 !important;
+    margin-top: 10px;
+}
+
     /* --- SECCIÓN DE NOTAS (LORE) --- */
     .cuerpo-nota-integrado {
         flex-direction: column; /* Imagen arriba, texto abajo */
@@ -997,6 +1060,21 @@ input[type="file"] {
     </div>
 </div>
 
+
+<div id="mobileActionSheet" class="mobile-sheet">
+    <div class="sheet-overlay" onclick="cerrarPanelMovil()"></div>
+    <div class="sheet-content">
+        <div class="sheet-handle"></div>
+        <h3 id="sheetItemTitle" style="color: #00f2ff; margin-bottom: 15px;">OPCIONES DE SISTEMA</h3>
+        
+        <button onclick="abrirModalStats(itemSeleccionadoGlobal); cerrarPanelMovil();">📊 VER / MEJORAR STATS</button>
+        <button onclick="accionMoverAlBaul(itemSeleccionadoGlobal); cerrarPanelMovil();">📦 MOVER AL BAÚL</button>
+        <button onclick="accionEliminar(itemSeleccionadoGlobal); cerrarPanelMovil();" style="color: #ff4444;">🗑️ ELIMINAR OBJETO</button>
+        
+        <button onclick="cerrarPanelMovil()" class="btn-cancelar">CANCELAR</button>
+    </div>
+</div>
+
 <audio id="bgm" loop>
     <source src="Untitled (1).mp3" type="audio/mpeg">
 </audio>
@@ -1050,86 +1128,34 @@ let editingItem = null; // NUEVO: Para almacenar el ítem que se está editando 
 const SLOT_SIZE = 60; 
 const GAP_SIZE = 6;   
 
-let toqueTimer;
+// Variable para saber qué ítem estamos editando
 let itemSeleccionadoGlobal = null;
-const menuC = document.querySelector('.context-menu');
 
-// --- 1. ABRIR MENÚ (Long Press en Item) ---
-document.addEventListener('touchstart', function(e) {
-    const item = e.target.closest('.item');
-    const dentroDelMenu = e.target.closest('.context-menu');
-
-    if (dentroDelMenu) return; // Si toca el menú, no hace nada aquí
-
-    if (item) {
-        toqueTimer = setTimeout(() => {
-            if (navigator.vibrate) navigator.vibrate(50);
-            itemSeleccionadoGlobal = item;
-            
-            menuC.style.display = 'block';
-            
-            // Posicionamiento para Celular (Centrado)
-            if (window.innerWidth <= 900) {
-                menuC.style.top = "50%";
-                menuC.style.left = "50%";
-                menuC.style.transform = "translate(-50%, -50%)";
-            } else {
-                menuC.style.top = e.touches[0].pageY + "px";
-                menuC.style.left = e.touches[0].pageX + "px";
-                menuC.style.transform = "none";
-            }
-        }, 600);
-    } else {
-        // Cerrar si toca cualquier otra parte de la pantalla
-        menuC.style.display = 'none';
-    }
-}, { passive: false });
-
-document.addEventListener('touchend', () => clearTimeout(toqueTimer));
-
-// --- 2. EJECUTAR ACCIONES (Long Press en Botón del Menú) ---
-menuC.addEventListener('touchstart', function(e) {
-    const boton = e.target.closest('button');
-    if (!boton) return;
-
-    e.preventDefault(); // Bloquea el click fantasma que cierra todo
+function manejarClickItem(e, item) {
+    itemSeleccionadoGlobal = item;
     
-    // Efecto visual de carga
-    boton.style.background = "rgba(0, 242, 255, 0.6)";
-    boton.style.transition = "background 0.4s";
+    // Si es un dispositivo móvil (ancho menor a 900px)
+    if (window.innerWidth <= 900) {
+        abrirPanelMovil();
+    } else {
+        // Aquí va tu lógica original de abrirMenuContexto(e, item) para PC
+    }
+}
 
-    toqueTimer = setTimeout(() => {
-        if (navigator.vibrate) navigator.vibrate(80);
-        
-        // --- AQUÍ ESTÁ EL TRUCO ---
-        // Obtenemos el texto del 'onclick' del HTML
-        const accionAtributo = boton.getAttribute('onclick');
-        
-        if (accionAtributo) {
-            // Creamos una función temporal y la ejecutamos pasándole el item
-            try {
-                const ejecutarAccion = new Function('item', accionAtributo);
-                ejecutarAccion(itemSeleccionadoGlobal);
-            } catch (err) {
-                console.error("Error al ejecutar acción:", err);
-                // Si falla lo anterior, intentamos una ejecución directa simple
-                eval(accionAtributo);
-            }
-        }
-        
-        boton.style.background = "";
-        // Opcional: Cerrar menú después de la acción si no es "Ver Stats"
-        if (!accionAtributo.includes('abrirModalStats')) {
-            menuC.style.display = 'none';
-        }
-    }, 700); // 700ms manteniendo el botón presionado para que funcione
-}, { passive: false });
+function abrirPanelMovil() {
+    const panel = document.getElementById('mobileActionSheet');
+    panel.classList.add('active');
+    // Bloqueamos el scroll del fondo para que sea más estable
+    document.body.style.overflow = 'hidden';
+}
 
-menuC.addEventListener('touchend', function(e) {
-    clearTimeout(toqueTimer);
-    const boton = e.target.closest('button');
-    if (boton) boton.style.background = "";
-});
+function cerrarPanelMovil() {
+    const panel = document.getElementById('mobileActionSheet');
+    panel.classList.remove('active');
+    document.body.style.overflow = 'auto';
+}
+
+// Vinculación: Asegúrate de que tus ítems tengan onclick="manejarClickItem(event, this)"
 
 function actualizarTextoArchivo(input) {
     const label = document.getElementById('label-foto-item');
