@@ -110,6 +110,21 @@ body {
     background: #000;
 }
 
+
+/* Evita que el celular quiera seleccionar texto o abrir menús del sistema */
+.context-menu, .context-button button, .item {
+    -webkit-touch-callout: none !important; /* iOS safari */
+    -webkit-user-select: none !important;    /* Safari */
+    user-select: none !important;           /* Standard */
+    touch-action: none !important;          /* Bloquea scroll mientras tocas el menú */
+}
+
+/* Animación opcional para saber que se está activando */
+.context-button button:active {
+    filter: brightness(1.5);
+    border-left: 10px solid #00f2ff;
+}
+
 /* ---------- Grid Inventario (2 Filas, Expansión Derecha) ---------- */
 .inventoryColumn, #colNotas {
     background: rgba(5, 10, 20, 0.9);
@@ -1036,117 +1051,75 @@ const SLOT_SIZE = 60;
 const GAP_SIZE = 6;   
 
 let toqueTimer;
+let itemSeleccionadoGlobal = null;
 const menuC = document.querySelector('.context-menu');
 
-// Función para abrir el menú (centralizada)
-function abrirMenuTerminal(e, targetItem) {
-    // Guardar referencia del item para las funciones de stats/eliminar
-    window.itemActivo = targetItem; 
-    
-    menuC.style.display = 'block';
-    
-    // Si no es móvil, lo posicionamos donde está el mouse
-    if (window.innerWidth > 900) {
-        menuC.style.top = e.pageY + "px";
-        menuC.style.left = e.pageX + "px";
-    }
-}
-
-
-let menuTimer;
-let itemSeleccionadoGlobal = null;
-
-// --- FUNCIÓN PARA ABRIR EL MENÚ (Desde el inventario) ---
-function abrirMenuTerminal(e, targetItem) {
-    const menuC = document.getElementById('contextMenu');
-    itemSeleccionadoGlobal = targetItem; 
-    menuC.style.display = 'block';
-    
-    if (window.innerWidth > 900) {
-        menuC.style.top = e.pageY + "px";
-        menuC.style.left = e.pageX + "px";
-    }
-}
-
-// --- LÓGICA DE BOTONES DEL MENÚ (SOLO MANTENIENDO) ---
-const botonesMenu = document.querySelectorAll('.context-button button');
-
-botonesMenu.forEach(boton => {
-    // 1. Iniciamos el contador al tocar
-    boton.addEventListener('touchstart', function(e) {
-        e.preventDefault(); // BLOQUEA el click normal y el zoom
-        
-        // Feedback visual inmediato
-        this.style.background = "rgba(0, 242, 255, 0.4)";
-        
-        menuTimer = setTimeout(() => {
-            if (navigator.vibrate) navigator.vibrate(60); // Vibración de éxito
-            
-            // Ejecutar la función que tenga el botón en su 'data-action' o ID
-            const accion = this.getAttribute('onclick');
-            if (accion) {
-                eval(accion); // Ejecuta la función (ej: accionEliminar())
-            }
-            
-            this.style.background = ""; // Reset color
-        }, 800); // 800ms manteniendo para confirmar
-    }, { passive: false });
-
-    // 2. Si suelta antes de tiempo, cancelamos todo
-    boton.addEventListener('touchend', function() {
-        clearTimeout(menuTimer);
-        this.style.background = "";
-    });
-
-    // 3. Bloqueamos el click normal por si acaso
-    boton.addEventListener('click', (e) => e.preventDefault());
-});
-
-// --- FUNCIONES DE ACCIÓN ---
-function accionEliminar() {
-    if (itemSeleccionadoGlobal) {
-        itemSeleccionadoGlobal.remove();
-        cerrarMenu();
-    }
-}
-
-function cerrarMenu() {
-    document.getElementById('contextMenu').style.display = 'none';
-    itemSeleccionadoGlobal = null;
-}
-
-// LÓGICA DE TOQUES PARA CELULAR
+// --- 1. GESTIÓN DEL INVENTARIO (PARA ABRIR EL MENÚ) ---
 document.addEventListener('touchstart', function(e) {
     const item = e.target.closest('.item');
-    
-    // Si tocamos el menú, no hacemos nada (permitimos que funcionen sus botones)
-    if (e.target.closest('.context-menu')) return;
+    const dentroDelMenu = e.target.closest('.context-menu');
+
+    // Si tocamos el menú, NO hacemos nada aquí (lo maneja el punto 2)
+    if (dentroDelMenu) return;
 
     if (item) {
-        // Iniciamos contador de 500ms para el menú
+        // Long press para abrir menú
         toqueTimer = setTimeout(() => {
-            if (navigator.vibrate) navigator.vibrate(40); // Feedback táctil
-            abrirMenuTerminal(e.touches[0], item);
-        }, 600);
+            if (navigator.vibrate) navigator.vibrate(50);
+            itemSeleccionadoGlobal = item; // Guardamos el ítem
+            
+            menuC.style.display = 'block';
+            
+            // Centrar en pantalla si es móvil
+            if (window.innerWidth <= 900) {
+                menuC.style.top = "50%";
+                menuC.style.left = "50%";
+                menuC.style.transform = "translate(-50%, -50%)";
+            } else {
+                menuC.style.top = e.touches[0].pageY + "px";
+                menuC.style.left = e.touches[0].pageX + "px";
+                menuC.style.transform = "none";
+            }
+        }, 700); // 700ms para abrir
     } else {
-        // Si tocamos fuera de un item y del menú, cerramos el menú
-        if (!e.target.closest('.context-menu')) {
-            menuC.style.display = 'none';
-        }
+        // Cerrar si toca fuera
+        menuC.style.display = 'none';
     }
-}, { passive: true });
+}, { passive: false });
 
-document.addEventListener('touchend', function() {
-    clearTimeout(toqueTimer);
-});
+document.addEventListener('touchend', () => clearTimeout(toqueTimer));
 
-// EVITAR QUE EL MENÚ SE CIERRE AL TOCAR SUS PROPIOS BOTONES
+// --- 2. GESTIÓN DE LOS BOTONES DEL MENÚ (MANTENER PARA ACTIVAR) ---
+// Usamos delegación de eventos para que siempre detecte los botones
 menuC.addEventListener('touchstart', function(e) {
-    e.stopPropagation(); // Esto impide que el toque "atraviese" el menú
-}, { passive: true });
+    const boton = e.target.closest('button');
+    if (!boton) return;
 
-menuC.addEventListener('click', function(e) {
-    e.stopPropagation();
+    // IMPORTANTE: Prevenimos que el click fantasma cierre el menú
+    e.preventDefault(); 
+    
+    // Feedback visual de "cargando acción"
+    boton.style.background = "rgba(0, 242, 255, 0.5)";
+    boton.style.transition = "background 0.5s";
+
+    toqueTimer = setTimeout(() => {
+        if (navigator.vibrate) navigator.vibrate(100); // Vibración más fuerte al activar
+        
+        // Ejecutamos la función que tiene el botón en su onclick
+        const func = boton.getAttribute('onclick');
+        if (func) {
+            // Evaluamos la función manualmente para asegurar que ocurra
+            new Function(func)(); 
+        }
+        
+        boton.style.background = "";
+    }, 800); // Hay que mantener 800ms el botón para que funcione
+}, { passive: false });
+
+menuC.addEventListener('touchend', function(e) {
+    clearTimeout(toqueTimer);
+    const boton = e.target.closest('button');
+    if (boton) boton.style.background = "";
 });
 
 function actualizarTextoArchivo(input) {
