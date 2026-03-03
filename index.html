@@ -737,26 +737,6 @@ input[type="file"] {
     margin-bottom: 10px;
 }
 
-@media (max-width: 900px) {
-    .context-button button {
-        /* Evita que el sistema intente "seleccionar" el texto del botón */
-        user-select: none;
-        -webkit-tap-highlight-color: rgba(0,242,255,0.3);
-        
-        /* Asegura que el área de clic sea toda la caja */
-        display: block;
-        width: 100%;
-        position: relative;
-        z-index: 1000001;
-    }
-    
-    /* Efecto visual de pulsación (Feedback) */
-    .context-button button:active {
-        background: #00f2ff !important;
-        color: #000 !important;
-    }
-}
-
 /* Estilo para etiquetas informativas */
 .infoRow { margin-top: 10px; color: #ff9d00; font-size: 11px; }
 </style>
@@ -1073,81 +1053,67 @@ function abrirMenuTerminal(e, targetItem) {
 }
 
 
-// Variable global para guardar el ítem que activó el menú
+let menuTimer;
 let itemSeleccionadoGlobal = null;
 
-// Función para abrir el menú (llámala desde tu Long Press)
+// --- FUNCIÓN PARA ABRIR EL MENÚ (Desde el inventario) ---
 function abrirMenuTerminal(e, targetItem) {
-    const menuC = document.querySelector('.context-menu');
-    
-    // GUARDAR REFERENCIA: Esto es lo que falta para que "Eliminar" sepa qué borrar
+    const menuC = document.getElementById('contextMenu');
     itemSeleccionadoGlobal = targetItem; 
-    
     menuC.style.display = 'block';
     
-    // Posicionamiento
     if (window.innerWidth > 900) {
         menuC.style.top = e.pageY + "px";
         menuC.style.left = e.pageX + "px";
     }
 }
 
-// LOGICA DE BOTONES (Asegúrate de que tus funciones se llamen así)
-function accionMoverAlBaul() {
-    if (!itemSeleccionadoGlobal) return;
-    console.log("Moviendo al baúl:", itemSeleccionadoGlobal.id);
-    // Agregá aquí tu lógica para moverlo...
-    
-    cerrarMenu();
-}
+// --- LÓGICA DE BOTONES DEL MENÚ (SOLO MANTENIENDO) ---
+const botonesMenu = document.querySelectorAll('.context-button button');
 
+botonesMenu.forEach(boton => {
+    // 1. Iniciamos el contador al tocar
+    boton.addEventListener('touchstart', function(e) {
+        e.preventDefault(); // BLOQUEA el click normal y el zoom
+        
+        // Feedback visual inmediato
+        this.style.background = "rgba(0, 242, 255, 0.4)";
+        
+        menuTimer = setTimeout(() => {
+            if (navigator.vibrate) navigator.vibrate(60); // Vibración de éxito
+            
+            // Ejecutar la función que tenga el botón en su 'data-action' o ID
+            const accion = this.getAttribute('onclick');
+            if (accion) {
+                eval(accion); // Ejecuta la función (ej: accionEliminar())
+            }
+            
+            this.style.background = ""; // Reset color
+        }, 800); // 800ms manteniendo para confirmar
+    }, { passive: false });
+
+    // 2. Si suelta antes de tiempo, cancelamos todo
+    boton.addEventListener('touchend', function() {
+        clearTimeout(menuTimer);
+        this.style.background = "";
+    });
+
+    // 3. Bloqueamos el click normal por si acaso
+    boton.addEventListener('click', (e) => e.preventDefault());
+});
+
+// --- FUNCIONES DE ACCIÓN ---
 function accionEliminar() {
-    if (!itemSeleccionadoGlobal) return;
-    if (confirm("¿ELIMINAR OBJETO DE LA MEMORIA?")) {
-        itemSeleccionadoGlobal.remove(); // Borra el elemento del DOM
+    if (itemSeleccionadoGlobal) {
+        itemSeleccionadoGlobal.remove();
         cerrarMenu();
     }
 }
 
 function cerrarMenu() {
-    const menuC = document.querySelector('.context-menu');
-    menuC.style.display = 'none';
-    itemSeleccionadoGlobal = null; // Limpiamos la referencia
+    document.getElementById('contextMenu').style.display = 'none';
+    itemSeleccionadoGlobal = null;
 }
-
-// LÓGICA DE TOQUES PARA CELULAR
-document.addEventListener('touchstart', function(e) {
-    const item = e.target.closest('.item');
-    
-    // Si tocamos el menú, no hacemos nada (permitimos que funcionen sus botones)
-    if (e.target.closest('.context-menu')) return;
-
-    if (item) {
-        // Iniciamos contador de 500ms para el menú
-        toqueTimer = setTimeout(() => {
-            if (navigator.vibrate) navigator.vibrate(40); // Feedback táctil
-            abrirMenuTerminal(e.touches[0], item);
-        }, 600);
-    } else {
-        // Si tocamos fuera de un item y del menú, cerramos el menú
-        if (!e.target.closest('.context-menu')) {
-            menuC.style.display = 'none';
-        }
-    }
-}, { passive: true });
-
-document.addEventListener('touchend', function() {
-    clearTimeout(toqueTimer);
-});
-
-// EVITAR QUE EL MENÚ SE CIERRE AL TOCAR SUS PROPIOS BOTONES
-menuC.addEventListener('touchstart', function(e) {
-    e.stopPropagation(); // Esto impide que el toque "atraviese" el menú
-}, { passive: true });
-
-menuC.addEventListener('click', function(e) {
-    e.stopPropagation();
-});
 
 function actualizarTextoArchivo(input) {
     const label = document.getElementById('label-foto-item');
