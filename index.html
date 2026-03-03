@@ -207,29 +207,15 @@ body {
 
 /* ---------- Menú de Contexto (REPARADO) ---------- */
 .context-menu {
-    position: fixed; /* Asegura que no se mueva con el scroll */
-    z-index: 10000;
-    display: none; /* Controlado por JS */
-    background: rgba(5, 15, 25, 0.98);
-    border: 2px solid #00f2ff;
-    padding: 10px;
-    min-width: 200px;
-    box-shadow: 0 0 30px rgba(0, 242, 255, 0.5);
-}
-
-.context-button {
-    display: grid;
-    grid-template-columns: 1fr; /* Lista vertical para mejor legibilidad */
-    gap: 8px;
+    display: none;
+    position: fixed;
+    z-index: 1000000 !important; /* Asegura que esté ARRIBA de todo */
+    pointer-events: auto !important; /* Obliga a que reciba toques */
 }
 
 .context-button button {
-    background: #000;
-    color: #00f2ff;
-    border: 1px solid #00f2ff;
-    padding: 8px;
-    text-transform: uppercase;
-    cursor: pointer;
+    pointer-events: auto !important;
+    touch-action: manipulation; /* Optimiza para toques rápidos */
 }
 
 .context-button button:hover {
@@ -1025,14 +1011,12 @@ input[type="file"] {
     </div>
 </div>
 
-
-<div id="contextMenu" class="context-menu" role="menu">
+<div id="contextMenu" class="context-menu">
     <div class="context-button">
-    <button id="ctxViewStats">Ver/Mejorar Stats</button>
-    <button id="ctxMoveToBaul">Mover al baúl</button>
-    <button id="ctxMoveToInv">Mover al inventario</button>
-    <button id="ctxDelete">Eliminar</button>
-    <button id="ctxClose">Cancelar</button>
+        <button type="button">📊 VER STATS</button>
+        <button type="button">📦 MOVER AL BAÚL</button>
+        <button type="button" style="color:red">🗑️ ELIMINAR</button>
+        <button type="button">CANCELAR</button>
     </div>
 </div>
 
@@ -1129,46 +1113,52 @@ let editingItem = null; // NUEVO: Para almacenar el ítem que se está editando 
 const SLOT_SIZE = 60; 
 const GAP_SIZE = 6;   
 
-let toqueTimer;
+
+
+// Variable para saber qué ítem estamos tocando
 let itemSeleccionadoGlobal = null;
-const esCelular = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-// --- GESTIÓN DE ITEMS ---
-document.addEventListener('touchstart', function(e) {
-    const item = e.target.closest('.item');
-    if (!item || !esCelular) return;
-
-    // Si es celu, esperamos el long press
-    toqueTimer = setTimeout(() => {
-        if (navigator.vibrate) navigator.vibrate(50); // Vibración de confirmación
-        itemSeleccionadoGlobal = item;
-        abrirPanelMovil();
-    }, 600); 
-}, { passive: true });
-
-document.addEventListener('touchend', () => clearTimeout(toqueTimer));
-document.addEventListener('touchmove', () => clearTimeout(toqueTimer)); // Si desliza, cancelamos
-
-// --- FUNCIONES DEL PANEL ---
-function abrirPanelMovil() {
-    document.getElementById('mobileActionSheet').classList.add('active');
-    document.body.style.overflow = 'hidden'; // Evita scroll de fondo
-}
-
-function cerrarPanelMovil() {
-    document.getElementById('mobileActionSheet').classList.remove('active');
-    document.body.style.overflow = 'auto';
-}
-
-// --- PREVENIR MENÚ NATIVO EN CELU ---
-window.oncontextmenu = function(event) {
-    if (esCelular) {
-        event.preventDefault();
-        event.stopPropagation();
-        return false;
+// Esta función debe ejecutarse cuando detectas el toque largo en el ítem
+function abrirMenuContextual(e, item) {
+    itemSeleccionadoGlobal = item;
+    const menu = document.getElementById('contextMenu');
+    menu.style.display = 'block';
+    
+    // Si es celu, lo centramos (como ya tenías en el CSS)
+    // Si es PC, usamos coordenadas
+    if (window.innerWidth > 900) {
+        menu.style.top = e.pageY + "px";
+        menu.style.left = e.pageX + "px";
     }
-};
+}
 
+// --- EL FIX PARA QUE LOS BOTONES RESPONDAN ---
+document.addEventListener('touchstart', function(e) {
+    // 1. Detectamos si lo que tocaste es un botón DENTRO del menú de contexto
+    const boton = e.target.closest('.context-button button');
+    
+    if (boton) {
+        // Detenemos cualquier otra acción del navegador
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Ejecutamos la acción según el texto del botón o una clase
+        const accion = boton.innerText.toUpperCase();
+
+        if (accion.includes("STATS")) {
+            abrirModalStats(itemSeleccionadoGlobal);
+        } else if (accion.includes("BAÚL") || accion.includes("BAUL")) {
+            moverAlBaul(itemSeleccionadoGlobal);
+        } else if (accion.includes("ELIMINAR")) {
+            eliminarItem(itemSeleccionadoGlobal);
+        } else if (accion.includes("CANCELAR")) {
+            // No hace nada, solo cierra
+        }
+
+        // Siempre cerramos el menú después de tocar un botón
+        document.getElementById('contextMenu').style.display = 'none';
+    }
+}, { passive: false }); // 'passive: false' permite usar preventDefault
 
 // Vinculación: Asegúrate de que tus ítems tengan onclick="manejarClickItem(event, this)"
 
