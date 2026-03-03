@@ -1,0 +1,2124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PDA</title>
+<style>
+/*******************************************************
+/* RESIDENT EVIL UI - NEOMUTATION (SCI-FI EDITION) 
+/*******************************************************/
+
+@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
+
+
+* { 
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0; 
+}
+
+body {
+    background: #020205;
+    background-image: 
+        radial-gradient(circle at 50% 50%, #0a1a2f 0%, #000 100%),
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+    background-size: 100% 100%, 100% 4px;
+    color: #00f2ff; 
+    font-family: 'Courier Prime', monospace;
+    display: flex;
+    flex-direction: row;
+    padding: 20px;
+    gap: 20px;
+    min-height: 100vh;
+    text-transform: uppercase;
+    overflow-x: hidden;
+}
+
+/* ---------- Panel Personajes (Lateral) - Restaurado y Espaciado ---------- */
+#panelPersonajes {
+    width: 280px;
+    flex-shrink: 0;
+    background: rgba(10, 15, 25, 0.95);
+    padding: 20px;
+    border: 1px solid #00f2ff;
+    border-right: 4px solid #00f2ff;
+    height: fit-content;
+    box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
+}
+
+/* Títulos con mayor separación */
+#panelPersonajes h3, .sectionTitle { 
+    margin-top: 25px; 
+    margin-bottom: 12px; 
+    font-size: 14px; 
+    color: #ff9d00; 
+    border-bottom: 1px solid #ff9d00;
+    display: block;
+}
+
+/* Botones y Inputs con espaciado restaurado */
+#panelPersonajes button, 
+#colNotas button, 
+#panelAddItem select, 
+#panelAddItem input {
+    width: 100%;
+    margin-bottom: 12px; /* Separación para que no sea compacto */
+    padding: 10px;
+    background: rgba(0, 242, 255, 0.05);
+    border: 1px solid #00f2ff;
+    color: #00f2ff; 
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+#panelPersonajes button:hover {
+    background: rgba(0, 242, 255, 0.2);
+}
+
+#listaPersonajes button.selected {
+    background: #ff9d00;
+    color: #000;
+    box-shadow: 0 0 15px #ff9d00;
+}
+
+/* ---------- Área Principal ---------- */
+#mainArea {
+    display: flex;
+    flex-direction: column; 
+    gap: 20px;
+    flex-grow: 1;
+}
+
+/* Header Estilo Scan */
+#pjHeader {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: rgba(0, 242, 255, 0.05);
+    padding: 15px;
+    border: 1px solid rgba(0, 242, 255, 0.4);
+    border-left: 8px solid #00f2ff;
+}
+
+#pjFoto {
+    width: 80px;
+    height: 100px;
+    object-fit: cover;
+    border: 1px solid #00f2ff;
+    background: #000;
+}
+
+/* ---------- Grid Inventario (2 Filas, Expansión Derecha) ---------- */
+.inventoryColumn, #colNotas {
+    background: rgba(5, 10, 20, 0.9);
+    padding: 20px;
+    border: 1px solid rgba(0, 242, 255, 0.2);
+}
+
+.inventarioGrid {
+    display: grid;
+    grid-template-rows: repeat(2, 110px); 
+    grid-auto-flow: column; 
+    grid-auto-columns: 140px; 
+    gap: 12px;
+    background: #00060a;
+    border: 2px solid #00f2ff;
+    padding: 15px;
+    overflow-x: auto; 
+    min-height: 260px;
+    box-shadow: inset 0 0 30px rgba(0, 242, 255, 0.15);
+}
+
+.slot {
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(0, 242, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.slot:hover {
+    border: 1px solid #fff;
+    background: rgba(0, 242, 255, 0.1);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+}
+
+/* Items que ocupan TODO el espacio del slot */
+.item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start; /* Alinea desde arriba para dejar espacio al texto */
+    width: 100% !important;
+    height: 100% !important;
+    padding: 8px; /* Espacio interno para que la imagen no toque los bordes */
+    background: linear-gradient(135deg, rgba(0, 50, 70, 0.9) 0%, rgba(0, 10, 20, 1) 100%);
+    border: 1px solid #00f2ff;
+    position: absolute;
+    top: 0; left: 0;
+    box-sizing: border-box;
+}
+
+.item img {
+    width: 100%;
+    height: 65px; /* <--- ALTURA FIJA: Todas las imágenes medirán lo mismo de alto */
+    object-fit: contain; /* <--- Mantiene la proporción sin deformar ni estirar */
+    pointer-events: none;
+    margin-bottom: 4px;
+    
+    /* TIP PROFESIONAL: Si tus imágenes tienen fondo blanco, esto lo hace transparente en modo oscuro */
+    mix-blend-mode: screen; 
+    filter: brightness(1.1) contrast(1.1);
+}
+
+.item span, .item div {
+    font-size: 10px;
+    line-height: 1.1;
+    text-align: center;
+    width: 100%;
+    word-wrap: break-word; /* Rompe palabras largas si es necesario */
+    color: #00f2ff;
+}
+
+
+/* ---------- Menú de Contexto (REPARADO) ---------- */
+.context-menu {
+    position: fixed; /* Asegura que no se mueva con el scroll */
+    z-index: 10000;
+    display: none; /* Controlado por JS */
+    background: rgba(5, 15, 25, 0.98);
+    border: 2px solid #00f2ff;
+    padding: 10px;
+    min-width: 200px;
+    box-shadow: 0 0 30px rgba(0, 242, 255, 0.5);
+}
+
+.context-button {
+    display: grid;
+    grid-template-columns: 1fr; /* Lista vertical para mejor legibilidad */
+    gap: 8px;
+}
+
+.context-button button {
+    background: #000;
+    color: #00f2ff;
+    border: 1px solid #00f2ff;
+    padding: 8px;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.context-button button:hover {
+    background: #00f2ff;
+    color: #000;
+}
+
+/* --- SPLASH SCREEN PDA --- */
+#pda-boot-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #020205;
+    z-index: 999999; /* Por encima de TODO */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    transition: opacity 1s ease-out, visibility 1s;
+}
+
+.boot-content {
+    text-align: center;
+    position: relative;
+    z-index: 10;
+}
+
+.boot-logo {
+    width: 200px; /* Ajusta según tu imagen */
+    filter: drop-shadow(0 0 15px #00f2ff);
+    margin-bottom: 30px;
+    animation: boot-flicker 2s infinite;
+}
+
+.boot-text-container {
+    font-family: 'JetBrains Mono', monospace;
+    color: #00f2ff;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.boot-text {
+    margin: 5px 0;
+    opacity: 0;
+    animation: fade-in-text 0.5s forwards;
+}
+
+/* Retrasos para que el texto aparezca línea por línea */
+.boot-text:nth-child(1) { animation-delay: 0.5s; }
+.boot-text:nth-child(2) { animation-delay: 1.2s; }
+.boot-text:nth-child(3) { animation-delay: 1.8s; }
+.boot-text:nth-child(4) { animation-delay: 2.5s; }
+
+.boot-bar {
+    width: 340x;
+    height: 4px;
+    background: rgba(0, 242, 255, 0.1);
+    margin-top: 20px;
+    border: 1px solid #00f2ff;
+    position: relative;
+}
+
+.boot-progress {
+    width: 0%;
+    height: 100%;
+    background: #00f2ff;
+    box-shadow: 0 0 10px #00f2ff;
+    animation: fill-bar 3s forwards ease-in-out;
+    animation-delay: 0.5s;
+}
+
+/* Efecto de desvanecimiento final */
+.pda-ready {
+    opacity: 0;
+    visibility: hidden;
+}
+
+/* ANIMACIONES */
+@keyframes boot-flicker {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+    52% { opacity: 1; }
+}
+
+@keyframes fade-in-text {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fill-bar {
+    0% { width: 0%; }
+    100% { width: 100%; }
+}
+
+.scanline-boot {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    background: linear-gradient(to bottom, rgba(0,242,255,0) 50%, rgba(0,242,255,0.05) 50%);
+    background-size: 100% 4px;
+    pointer-events: none;
+}
+
+
+/* Contenedor principal: Lista a la izquierda, Visor a la derecha */
+.contenedor-lore-principal {
+    display: grid;
+    grid-template-columns: 500px 4fr;
+    gap: 15px;
+    height: 500px; /* Un poco más de altura para que quepa todo bien */
+    margin-top: 10px;
+}
+
+/* LADO IZQUIERDO: Lista de registros */
+.lista-lateral-notas {
+    background: rgba(0, 242, 255, 0.05);
+    border: 1px solid rgba(0, 242, 255, 0.2);
+    padding: 10px;
+    overflow-y: auto;
+}
+
+/* LADO DERECHO: El Visor (Panel de Prey) */
+.visor-datos-nota {
+    display: flex;
+    flex-direction: column;
+    background: rgba(0, 10, 20, 0.9);
+    border: 2px solid #00f2ff;
+    box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+    padding: 15px;
+}
+
+
+/* ============================================================
+   ESTILO PARA IMPORTAR COMPRA AL BAÚL (LORE-TECH)
+============================================================ */
+
+/* Contenedor del botón de importación */
+.import-baul-container {
+    margin: 15px 0;
+    padding: 10px;
+    background: rgba(255, 157, 0, 0.05); /* Tinte ámbar sutil */
+    border-left: 3px solid #ff9d00;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.import-baul-title {
+    font-size: 11px;
+    color: #ff9d00;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* El Label que actúa como botón estético */
+.btn-import-baul {
+    display: inline-block;
+    background: #001a2d;
+    color: #00f2ff;
+    border: 1px solid #00f2ff;
+    padding: 8px 12px;
+    font-size: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    box-shadow: 0 0 5px rgba(0, 242, 255, 0.2);
+}
+
+.btn-import-baul:hover {
+    background: #00f2ff;
+    color: #000;
+    box-shadow: 0 0 15px #00f2ff;
+}
+
+/* Ocultar el input nativo de archivo */
+#importBaulFile {
+    display: none;
+}
+
+/* ============================================================
+   RE-AJUSTE MULTIMEDIA (IMAGEN + AUDIO VERTICAL)
+============================================================ */
+
+/* Esto asegura que el audio rellene el espacio bajo la imagen */
+.zona-multimedia-vertical {
+    width: 180px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch; /* Estira el audio para llenar el ancho */
+}
+
+.audio-container {
+    background: #000;
+    border: 1px solid rgba(0, 242, 255, 0.4);
+    padding: 10px 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+#noteAudioPlayer {
+    width: 100%;
+    height: 35px;
+    filter: invert(100%) hue-rotate(180deg) brightness(1.2) contrast(1.1);
+}
+
+
+/* El cuerpo que divide Multimedia (izq) y Texto (der) */
+.cuerpo-nota-integrado {
+    display: flex;
+    gap: 15px;
+    flex-grow: 1;
+    margin-top: 10px;
+    overflow: hidden;
+}
+
+/* COLUMNA MULTIMEDIA (La que querías arreglar) */
+.zona-multimedia-vertical {
+    width: 180px; /* Ancho fijo para el bloque de imagen/audio */
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.ImagenNota {
+    width: 100% !important;
+    height: 180px !important;
+    object-fit: cover;
+    border: 1px solid #00f2ff;
+    background: #000;
+}
+
+/* Contenedor del reproductor de audio */
+.audio-container {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    background: rgba(0, 242, 255, 0.05);
+    padding: 8px;
+    border: 1px solid rgba(0, 242, 255, 0.3);
+}
+
+.audio-label {
+    font-size: 10px;
+    color: #ff9d00;
+    letter-spacing: 1px;
+    font-weight: bold;
+}
+
+#noteAudioPlayer {
+    width: 100%;
+    height: 30px;
+    outline: none;
+    /* Filtro para que el reproductor gris de Chrome se vea Sci-Fi */
+    filter: invert(100%) hue-rotate(180deg) brightness(1.5);
+}
+
+/* Estilo para los botones de subir archivos (Labels) */
+.label-file {
+    display: block;
+    background: rgba(0, 242, 255, 0.1);
+    border: 1px solid #00f2ff;
+    color: #00f2ff;
+    font-size: 10px;
+    padding: 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.label-file:hover {
+    background: #00f2ff;
+    color: #000;
+}
+
+/* Ocultar los inputs nativos feos */
+input[type="file"] {
+    display: none;
+}
+
+/* TEXTAREA (El contenido de la nota) */
+#noteContent {
+    flex-grow: 1;
+    background: rgba(0, 242, 255, 0.02) !important;
+    border: 1px solid rgba(0, 242, 255, 0.1) !important;
+    color: #00f2ff !important;
+    font-size: 16px !important;
+    padding: 10px !important;
+    resize: none;
+    outline: none;
+    text-transform: none;
+}
+
+
+/* Footer de botones */
+.botones-lore-footer {
+    display: flex;
+    gap: 10px;
+    margin-top: 80px;
+}
+
+/* Media Query: En celular se pone uno arriba de otro */
+@media (max-width: 900px) {
+    .contenedor-lore-principal {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+    .cuerpo-nota-integrado {
+        flex-direction: column;
+    }
+    .zona-imagen { width: 100%; }
+    .ImagenNota { width: 100% !important; height: 200px !important; }
+}
+/* ---------- Notas (Archivos de Umbrella) ---------- */
+#noteContent {
+    background: rgba(0, 10, 15, 0.9) !important;
+    color: #00f2ff !important;
+    border: 1px solid rgba(0, 242, 255, 0.3) !important;
+    font-size: 15px !important;
+    padding: 200px !important;
+}
+
+/* ---------- Modales (Stats / Mejorar) ---------- */
+#statsModal {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.85);
+    z-index: 99999; 
+    display: none;
+    justify-content: center;
+    align-items: center;
+    
+    backdrop-filter: blur(5px);
+}
+
+#statsModalContent {
+    background: #02050a;
+    border: 2px solid #00f2ff;
+    padding: 30px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 0 50px rgba(0, 242, 255, 0.3);
+}
+
+/* ---------- MEDIA QUERY (CELULAR) ---------- */
+/* ============================================================
+   PROTOCOLO DE ADAPTACIÓN PARA DISPOSITIVOS MÓVILES (PDA)
+   ============================================================ */
+
+/* Ajuste del Menú de Contexto para Celulares */
+@media (max-width: 900px) {
+    .context-menu {
+        position: fixed !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important; /* Lo centra en pantalla */
+        width: 80% !important;
+        max-width: 300px;
+        min-width: unset !important;
+        background: rgba(5, 10, 20, 0.98);
+        border: 3px solid #00f2ff;
+        box-shadow: 0 0 50px rgba(0, 242, 255, 0.6);
+    }
+
+    .context-button button {
+        padding: 15px !important; /* Botones más grandes para el dedo */
+        font-size: 14px !important;
+        margin-bottom: 5px;
+    }
+
+    /* Corregimos ese padding de 200px de las notas que rompe todo en celu */
+    #noteContent {
+        padding: 20px !important; 
+    }
+}
+
+@media (max-width: 1024px) {
+    /* Ajuste intermedio para tablets o pantallas pequeñas */
+    .contenedor-lore-principal {
+        grid-template-columns: 1fr; /* Apilamos la lista de notas arriba del visor */
+        height: auto;
+    }
+    
+    .lista-lateral-notas {
+        max-height: 200px; /* Limitamos la altura de la lista para ver el contenido abajo */
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        flex-direction: column;
+        padding: 10px;
+        gap: 15px;
+    }
+
+    /* REORDENAMIENTO: Primero el Personaje, luego el Inventario, al final el Admin */
+    #mainArea { order: 1; width: 100%; }
+    #panelPersonajes { order: 2; width: 100%; border-right: 1px solid #00f2ff; border-top: 4px solid #00f2ff; }
+
+    /* --- HEADER Y FOTO --- */
+    #pjHeader {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+
+    #pjFoto {
+        width: 100px;
+        height: 125px;
+    }
+
+    /* --- INVENTARIO (Vertical y cómodo) --- */
+    .inventarioGrid {
+        grid-template-rows: auto;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); 
+        grid-auto-flow: row;
+        overflow-x: hidden;
+        height: auto;
+        max-height: 500px; /* Para que no sea infinito */
+        overflow-y: auto;
+    }
+
+    .slot {
+        height: 110px;
+    }
+
+    /* --- SECCIÓN DE NOTAS (LORE) --- */
+    .cuerpo-nota-integrado {
+        flex-direction: column; /* Imagen arriba, texto abajo */
+        align-items: center;
+    }
+
+    .zona-multimedia-vertical {
+        width: 100%; /* La imagen de la nota ocupa todo el ancho */
+        max-width: 300px;
+    }
+
+    .ImagenNota {
+        height: 200px !important;
+    }
+
+    #noteContent {
+        padding: 15px !important; /* Corregimos el padding de 200px que tenías, en móvil es demasiado */
+        min-height: 250px;
+    }
+
+    /* --- BOTONES Y LABELS (Touch Friendly) --- */
+    .label-file, .label-file2, .label-file3, .btn-import-baul {
+        padding: 15px; /* Más grandes para el dedo */
+        font-size: 11px;
+    }
+
+    .botones-lore-footer {
+        flex-direction: column;
+        margin-top: 20px;
+    }
+
+    /* --- BOOT SCREEN (Ajuste de texto) --- */
+    .boot-text-container {
+        font-size: 10px;
+        padding: 0 20px;
+    }
+
+    .boot-bar {
+        width: 80%;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Pantallas muy pequeñas (celulares viejos) */
+    .inventarioGrid {
+        grid-template-columns: repeat(2, 1fr); /* Solo 2 columnas para que no se vea minúsculo */
+    }
+    
+    #pjHeader h2 {
+        font-size: 18px;
+    }
+
+    .sectionTitle {
+        font-size: 12px;
+    }
+}
+.label-file2{
+    display: block;
+    background: rgba(0, 242, 255, 0.1);
+    border: 1px solid #00f2ff;
+    color: #00f2ff;
+    font-size: 10px;
+    padding: 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.2s;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+
+.label-file3{
+    display: block;
+    background: rgba(0, 242, 255, 0.1);
+    border: 1px solid #00f2ff;
+    color: #ff0202;
+    font-size: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.2s;
+    margin-bottom: 50px;
+}
+
+.sectionTitle3{
+    margin-bottom: 10px;
+}
+
+/* Estilo para etiquetas informativas */
+.infoRow { margin-top: 10px; color: #ff9d00; font-size: 11px; }
+</style>
+
+</head>
+<body>
+
+<div id="panelPersonajes">
+    <div id="pda-boot-screen">
+    <div class="boot-content">
+        <img src="descargar (1).png" alt="NEOMUTATION LOGO" class="boot-logo">
+        
+        <div class="boot-text-container">
+            <p class="boot-text">NEOMUTATION OS v4.2.1 - INICIALIZANDO...</p>
+            <p class="boot-text">[OK] BIO-SCANNER CARGADO/p>
+            <p class="boot-text">[OK] ENCRIPTACION DEL INVENTARIO ACTIVADA</p>
+            <p class="boot-text">[WAIT] ESTABILIZANDO LINK NEURONAL.</p>
+            <div class="boot-bar">
+                <div class="boot-progress"></div>
+            </div>
+        </div>
+    </div>
+    <div class="scanline-boot"></div>
+</div>
+
+    <h3>Personajes</h3>
+    <div id="listaPersonajes"></div>
+
+    <div class="sectionTitle">Agregar personaje</div>
+    <input type="text" id="nuevoNombre" class="label-file" placeholder="Nombre" />
+    <input type="number" id="nuevoSlots" class="label-file2" placeholder="Slots (ej: 6)" />
+    
+    <label class="sectionTitle3">Foto del personaje (opcional)</label>
+
+    <!-- BOTÓN VISUAL QUE DISPARA EL INPUT -->
+    <label for="nuevaFoto" class="label-file3" style="display:block; cursor:pointer;">
+        📷 Elegir imagen
+    </label>
+
+    <!-- INPUT REAL (OCULTO POR TU CSS GLOBAL) -->
+    <input type="file" id="nuevaFoto" accept="image/*">
+
+    <button id="btnCrearPJ">Crear personaje</button>
+
+    <div class="sectionTitle">Acciones de Inventario</div>
+    <button id="btnEliminarPJ" style="background: #a44; border-color: #c66;" disabled>
+        Eliminar personaje seleccionado
+    </button>
+    
+    <hr style="border-color:#333; margin: 15px 0;" />
+    
+    <div class="sectionTitle" style="margin-top: 15px;">Compartir/Respaldar Inventario</div>
+    <button id="btnExportData">📤 Exportar Inventario (.json)</button>
+    
+    <label for="importFile" style="display:block; margin-top: 8px;">
+        <button id="btnImportTrigger" style="width: 100%; margin-top: 0;">
+            📥 Importar/Cargar Inventario
+        </button>
+    </label>
+    <input type="file" id="importFile" accept=".json" style="display: none;" />
+
+    <div class="sectionTitle" style="margin-top: 15px;">Compartir/Respaldar Notas</div>
+    <button id="btnExportNotas">📤 Exportar Nota Seleccionada (.notes)</button>
+    
+    <label for="importNotesFile" style="display:block; margin-top: 8px;">
+        <button id="btnImportNotesTrigger" style="width: 100%; margin-top: 0;">
+            📥 Importar/Añadir Nota
+        </button>
+    </label>
+    <input type="file" id="importNotesFile" accept=".notes" style="display: none;" />
+
+    <input type="file" id="importBaulFile" accept=".json" onchange="handleBaulImport(event)">
+
+    <div class="infoRow" style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+        <small>Haz clic para habilitar la música (autoplay).</small>
+        <button id="btnToggleVolume" style="width: auto; padding: 4px 8px; margin: 0; background: #222; border-color: #444; font-size: 16px;">
+            🔇
+        </button>
+    </div>
+</div>
+<div id="mainArea">
+    <div class="inventoryColumn" id="colInventario">
+        <div id="pjHeader" style="display:none;">
+            <img id="pjFoto" src="" alt="Foto de Personaje">
+            <h2 id="nombrePJ">Seleccioná un personaje</h2>
+        </div>
+        
+        <!-- NUEVO: PANEL DE ESTADO DE SALUD -->
+        <div id="statusPanel" style="display:none; margin-top: 10px; padding: 8px; border: 1px solid #333; border-radius: 4px; background: #181818;">
+            <div style="font-weight: bold; margin-bottom: 5px;">Estado de Salud:</div>
+            <div id="healthBarContainer" style="display: flex; gap: 5px; align-items: center;">
+                <div id="healthStatusText" style="font-weight: bold; color: #7f7; text-shadow: 0 0 3px #0f0;">FINE</div>
+                <div style="flex-grow: 1; height: 10px; border-radius: 5px; background: #444; overflow: hidden;">
+                    <div id="healthBar" style="width: 100%; height: 100%; background: #0c0; transition: all 0.3s;"></div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 8px; margin-top: 8px;">
+                <button onclick="changeHealthStatus('fine')" style="flex: 1; background: #080; border-color: #0c0; margin-top:0;">FINE</button>
+                <button onclick="changeHealthStatus('caution')" style="flex: 1; background: #880; border-color: #cc0; margin-top:0;">CAUTION</button>
+                <button onclick="changeHealthStatus('danger')" style="flex: 1; background: #800; border-color: #c00; margin-top:0;">DANGER</button>
+            </div>
+        </div>
+        <!-- FIN: PANEL DE ESTADO DE SALUD -->
+
+        <div id="inventarioPlaceholder" style="text-align:center; padding:50px;">
+            <h2>Seleccioná un personaje de la izquierda para empezar.</h2>
+        </div>
+
+        <div id="inventarioGrid" class="inventarioGrid" style="--cols: 8; display:none;"></div>
+
+       <div id="panelAddItem" style="margin-top:20px; display:none; border-top: 2px solid #ff9d00; padding-top: 15px;">
+    <h3 style="color: #ff9d00; border-color: #ff9d00;">[ MODO ADMIN: REGISTRO DE ÍTEMS ]</h3>
+    
+    <div class="infoRow">DENOMINACIÓN DEL OBJETO:</div>
+    <input type="text" id="itemNombre" placeholder="Nombre del ítem..." />
+    
+    <div class="infoRow">CATEGORÍA DE SUMINISTRO:</div>
+    <select id="itemTypeSelect">
+        <option value="generic">Ítem Genérico</option>
+        <option value="firearm">Arma de Fuego</option>
+        <option value="melee">Arma Cuerpo a Cuerpo</option>
+    </select>
+    
+    <div class="infoRow">Descripcion:</div>
+    <input type="text" id="itemDescriptionInitial" placeholder="Descripción corta (ej: Calibre 9mm)" />
+
+    <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <div style="flex: 1;">
+            <div class="infoRow">SLOTS (TAMAÑO):</div>
+            <input type="number" id="itemSlots" placeholder="Ej: 2" min="1" value="1" />
+        </div>
+        <div style="flex: 1;">
+            <div class="infoRow">STOCK INICIAL:</div>
+            <input type="number" id="itemCantidad" placeholder="Ej: 15" min="1" value="1" />
+        </div>
+    </div>
+
+    <div class="infoRow" style="margin-top: 15px;">ASIGNAR TEXTURA VISUAL:</div>
+    <label for="itemImagen" class="label-file2" id="label-foto-item" style="border-color: #ff9d00; color: #ff9d00; background: rgba(255,157,0,0.05);">
+        📂 SELECCIONAR ARCHIVO DE IMAGEN
+    </label>
+    <input type="file" id="itemImagen" accept="image/*" onchange="actualizarTextoArchivo(this)" />
+
+    <button id="btnAgregarItem" class="sectionTitle3" style="background: #ff9d00; color: #000; margin-top: 10px;">
+        CONFIRMAR E IMPORTAR AL INVENTARIO
+    </button>
+    
+    <div id="mensajeEspacio" style="color:#ff0202; margin-top:8px; font-weight: bold; font-size: 10px;"></div>
+</div>
+    </div>
+<div class="inventoryColumn" id="colBaul">
+    <h2>Baúl del personaje</h2>
+    
+    <div class="import-baul-container">
+        <label for="importBaulFile" class="btn-import-baul">
+            📥 IMPORTAR COMPRA AL BAÚL
+        </label>
+        <input type="file" id="importBaulFile" accept=".json" onchange="handleBaulImport(event)">
+    </div>
+
+    <div class="baulLabel">
+        Slots: <input type="number" id="baulSlotsInput" value="15" min="2" class="label-file2">
+        <button id="btnActualizarBaul" class="label-file2">Actualizar</button>
+    </div>
+    
+    <div id="baulGrid" class="inventarioGrid" style="--cols: 5;"></div>
+
+    <div style="margin-top:12px; color:#ccc; font-size:13px;">
+        <small>Puedes mover ítems entre el inventario y el baúl del personaje.</small>
+    </div>
+</div>
+    <div id="colNotas">
+    <h2>Archivo de Datos</h2>
+    
+    <div class="contenedor-lore-principal">
+        <div class="lista-lateral-notas">
+            <h3>Registros</h3>
+            <div id="notasList">
+                </div>
+        </div>
+
+        <div class="visor-datos-nota">
+            <input type="text" id="noteTitleInput" class="label-file" placeholder="ID del Registro..." />
+            
+            <div class="cuerpo-nota-integrado">
+                <div class="zona-imagen">
+                    <img id="noteImagePreview" src="" class="ImagenNota">
+                    <audio id="noteAudioPlayer" controls style="display:none; width: 150px; margin-top: 10px;"></audio>
+    
+    <div class="controles-carga">
+        <label for="noteImageUpload" class="label-file">Cargar Imagen</label>
+        <input type="file" id="noteImageUpload" accept="image/*">
+        
+     
+        <input type="file" id="noteAudioUpload" accept="audio/*"> </div>
+                </div>
+                <textarea id="noteContent" placeholder="Esperando datos..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="botones-lore-footer">
+        <button id="btnNewNote">Nuevo Registro</button>
+        <button id="btnSaveNote">Sincronizar</button>
+        <button id="btnDeleteNote">Purgar</button>
+    </div>
+</div>
+
+
+<div id="contextMenu" class="context-menu" role="menu">
+    <div class="context-button">
+    <button id="ctxViewStats">Ver/Mejorar Stats</button>
+    <button id="ctxMoveToBaul">Mover al baúl</button>
+    <button id="ctxMoveToInv">Mover al inventario</button>
+    <button id="ctxDelete">Eliminar</button>
+    <button id="ctxClose">Cancelar</button>
+    </div>
+</div>
+
+
+
+
+<!-- NUEVO: Modal para ver/editar Stats y Descripción -->
+<div id="statsModal">
+    <div id="statsModalContent">
+        <h3 id="statsModalTitle">Stats y Descripción del Ítem</h3>
+        
+        <div id="statsModalImageContainer">
+            <img id="statsModalImage" src="" alt="Imagen del Ítem">
+        </div>
+
+        <div id="statsInputsContainer">
+            <!-- Los inputs de las stats se inyectarán aquí por JS -->
+        </div>
+
+        <label for="statsModalDescription" class="sectionTitle">Descripción</label>
+        <textarea id="statsModalDescription" placeholder="Añade o edita una descripción detallada del ítem o sus mejoras."></textarea>
+
+        <div id="statsModalButtons">
+            <button id="btnSaveStats">Guardar Cambios</button>
+            <button id="btnCloseStats">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<audio id="bgm" loop>
+    <source src="Untitled (1).mp3" type="audio/mpeg">
+</audio>
+<audio id="sndMove">
+    <source src="UI Sounds_ Futuristic sound effects example (mp3cut.net), cambiarpj,etc.mp3" type="audio/wav">
+</audio>
+<audio id="sndSelect">
+    <source src="UI Sounds_ Futuristic sound effects example (mp3cut.net), cambiarpj,etc.mp3" type="audio/wav">
+</audio>
+<audio id="sndPickup">
+    <source src="UI Sounds_ Futuristic sound effects example (mp3cut.net), cambiarpj,etc.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+
+window.addEventListener('load', () => {
+    const splash = document.getElementById('pda-boot-screen');
+    
+    // Esperamos 4 segundos (lo que dura la animación de la barra) y quitamos la pantalla
+    setTimeout(() => {
+        splash.classList.add('pda-ready');
+        
+        // Opcional: Sonido de encendido
+     
+        
+    }, 4500); 
+});
+
+
+
+
+/* ============================================================
+    VARIABLES PRINCIPALES
+============================================================ */
+let personajes = JSON.parse(localStorage.getItem("personajes")) || {};
+let notasGlobales = JSON.parse(localStorage.getItem("notasGlobales")) || [];
+
+let personajeActual = null;
+let notaActualId = null; 
+
+let draggedItem = null;
+let draggedFrom = null;
+
+const ctxMenu = document.getElementById("contextMenu");
+let ctxTargetItem = null;
+let ctxTargetFrom = null;
+
+let editingItem = null; // NUEVO: Para almacenar el ítem que se está editando en el modal de stats
+
+/* Constantes para el cálculo visual del grid (ya no se usan para el ancho fijo) */
+const SLOT_SIZE = 60; 
+const GAP_SIZE = 6;   
+
+let toqueTemporizador;
+const esCelular = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+document.addEventListener('touchstart', function(e) {
+    const item = e.target.closest('.item');
+    
+    if (item && esCelular) {
+        // 1. Cancelamos cualquier comportamiento de "arrastre" nativo
+        // e.preventDefault(); // Descomentar si el drag & drop sigue molestando
+
+        // 2. Iniciamos el contador para el menú (500ms)
+        toqueTemporizador = setTimeout(() => {
+            // Vibración sutil de feedback (si el celu lo permite)
+            if (navigator.vibrate) navigator.vibrate(50);
+            
+            // Llamamos a tu función de abrir menú
+            // Pasamos el evento y el item detectado
+            abrirMenuContexto(e, item);
+        }, 500);
+    }
+}, { passive: false });
+
+document.addEventListener('touchend', function() {
+    if (toqueTemporizador) clearTimeout(toqueTemporizador);
+}, false);
+
+// Ajuste en tu función de abrir menú para que sea compatible con toques
+function abrirMenuContexto(e, itemElement) {
+    const menu = document.querySelector('.context-menu');
+    
+    // Guardamos el ID del item actual en el menú para que los botones sepan qué editar
+    menu.dataset.itemTarget = itemElement.id; 
+
+    menu.style.display = 'block';
+
+    // En celu, el CSS que te pasé antes lo centrará. 
+    // Para PC, usamos las coordenadas del mouse:
+    if (!esCelular) {
+        menu.style.top = e.pageY + "px";
+        menu.style.left = e.pageX + "px";
+    }
+}
+
+function actualizarTextoArchivo(input) {
+    const label = document.getElementById('label-foto-item');
+    if (input.files && input.files[0]) {
+        label.innerText = "✔️ ARCHIVO: " + input.files[0].name.toUpperCase();
+        label.style.background = "rgba(0, 255, 153, 0.2)";
+        label.style.borderColor = "#00ff99";
+        label.style.color = "#00ff99";
+    }
+}
+
+
+/* ============================================================
+    GUARDAR DATOS
+============================================================ */
+function saveData() {
+    localStorage.setItem("personajes", JSON.stringify(personajes));
+    localStorage.setItem("notasGlobales", JSON.stringify(notasGlobales));
+}
+
+
+/* ============================================================
+    EXPORTAR / IMPORTAR INVENTARIO
+============================================================ */
+document.getElementById("btnExportData").onclick = () => {
+    const data = JSON.stringify(personajes, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `inventario_re_export_${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    alert("Inventario exportado exitosamente como JSON.");
+};
+
+document.getElementById("btnImportTrigger").onclick = () => {
+    document.getElementById("importFile").click();
+};
+
+document.getElementById("importFile").onchange = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const importedData = JSON.parse(e.target.result);
+
+            if (typeof importedData === 'object' && Object.keys(importedData).every(key => importedData[key].slots !== undefined)) {
+                
+                personajes = importedData;
+                personajeActual = null; 
+                saveData(); 
+                renderListaPersonajes();
+                alert("Inventario importado exitosamente. Los datos anteriores fueron reemplazados.");
+
+            } else {
+                alert("Error: El archivo JSON importado no parece ser un archivo de inventario válido.");
+            }
+        } catch (error) {
+            alert("Error al leer el archivo. Asegúrate de que sea un JSON válido.");
+            console.error(error);
+        }
+    };
+    reader.readAsText(file);
+    document.getElementById("importFile").value = ''; 
+};
+
+
+/* ============================================================
+    SISTEMA DE NOTAS (LORE) CON IMAGEN - MODIFICADO PARA INDIVIDUAL
+============================================================ */
+function renderNotasList() {
+    const list = document.getElementById("notasList");
+    list.innerHTML = "";
+    
+    if (notasGlobales.length === 0) {
+        notasGlobales.push({ 
+            id: Date.now(), 
+            titulo: "Pista Inicial (Lore)", 
+            contenido: "Presiona 'Nueva Nota' para empezar a escribir. Puedes agregar una imagen opcional para contextualizar.",
+            imagen: null
+        });
+        saveData();
+    }
+    
+    notasGlobales.forEach(note => {
+        const btn = document.createElement("button");
+        btn.textContent = note.titulo;
+        btn.classList.toggle('selected', note.id === notaActualId); 
+        btn.dataset.id = note.id;
+        
+        btn.onclick = () => selectNote(note.id);
+
+        list.appendChild(btn);
+    });
+
+    if (!notaActualId && notasGlobales.length > 0) {
+        selectNote(notasGlobales[0].id);
+    } else if (notasGlobales.length > 0 && !notasGlobales.some(n => n.id === notaActualId)) {
+        selectNote(notasGlobales[0].id);
+    }
+    document.getElementById("sndPickup").play(); 
+
+}
+
+function selectNote(id) {
+    notaActualId = id;
+    const note = notasGlobales.find(n => n.id === id);
+    if (note) {
+        document.getElementById("noteTitleInput").value = note.titulo;
+        document.getElementById("noteContent").value = note.contenido;
+        
+        // Mostrar imagen
+        const imgPreview = document.getElementById("noteImagePreview");
+        if (note.imagen) {
+            imgPreview.src = note.imagen;
+            imgPreview.style.display = 'block';
+        } else {
+            imgPreview.src = '';
+            imgPreview.style.display = 'none';
+        }
+    }
+    document.getElementById("noteImageUpload").value = ''; // Limpia el input de archivo
+    renderNotasList(); 
+}
+
+document.getElementById("btnNewNote").onclick = () => {
+    const newNote = { id: Date.now(), titulo: "Nueva Nota", contenido: "", imagen: null };
+    notasGlobales.push(newNote);
+    saveData();
+    selectNote(newNote.id);
+    document.getElementById("noteTitleInput").focus();
+};
+
+document.getElementById("btnSaveNote").onclick = () => {
+    if (!notaActualId) return;
+
+    const noteIndex = notasGlobales.findIndex(n => n.id === notaActualId);
+    if (noteIndex !== -1) {
+        const file = document.getElementById("noteImageUpload").files[0];
+        const note = notasGlobales[noteIndex];
+
+        // Manejar la imagen
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            note.titulo = document.getElementById("noteTitleInput").value;
+            note.contenido = document.getElementById("noteContent").value;
+            
+            // Si hay archivo cargado, usa la nueva imagen, sino conserva la que ya tiene.
+            if (e.target.result) {
+                note.imagen = e.target.result;
+            } 
+            
+            saveData();
+            selectNote(note.id); // Vuelve a seleccionar para actualizar la vista previa
+            alert("Nota guardada.");
+        };
+
+        if (file) {
+            reader.readAsDataURL(file);
+        } else {
+            // Si no se cargó un archivo, ejecuta el guardado directo
+            reader.onload({ target: { result: null } }); 
+        }
+    }
+};
+
+document.getElementById("btnDeleteNote").onclick = () => {
+    if (!notaActualId) return;
+
+    if (notasGlobales.length === 1) {
+        // Usar modal o simulación de confirm
+        if (confirm("No puedes eliminar la única nota que existe.")) { /* No action, just informational */ }
+        return;
+    }
+
+    // Usar modal o simulación de confirm
+    if (confirm("¿Estás seguro de que quieres eliminar esta nota?")) {
+        notasGlobales = notasGlobales.filter(n => n.id !== notaActualId);
+        notaActualId = notasGlobales[0].id; 
+        saveData();
+        selectNote(notaActualId);
+        // Usar modal o simulación de alert
+        if (confirm("Nota eliminada.")) { /* No action, just informational */ }
+    }
+};
+
+// EXPORTAR NOTA INDIVIDUAL (MODIFICADO)
+document.getElementById("btnExportNotas").onclick = () => {
+    if (!notaActualId) {
+        alert("Selecciona una nota para exportar.");
+        return;
+    }
+    
+    const note = notasGlobales.find(n => n.id === notaActualId);
+    if (!note) return;
+
+    const data = JSON.stringify(note, null, 2); // Exportar solo la nota seleccionada
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    const safeTitle = note.titulo.replace(/[^a-z0-9]/gi, '_').toLowerCase().substring(0, 30);
+    a.download = `nota_${safeTitle}.notes`; 
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    alert(`Nota "${note.titulo}" exportada exitosamente como .notes.`);
+};
+
+// IMPORTAR NOTA INDIVIDUAL (MODIFICADO: AÑADE la nota)
+document.getElementById("btnImportNotesTrigger").onclick = () => {
+    document.getElementById("importNotesFile").click();
+};
+
+document.getElementById("importNotesFile").onchange = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const importedNote = JSON.parse(e.target.result);
+
+            if (typeof importedNote === 'object' && importedNote !== null && 
+                importedNote.titulo !== undefined && importedNote.contenido !== undefined) {
+                
+                // Generar un nuevo ID para evitar colisiones
+                importedNote.id = Date.now(); 
+                
+                notasGlobales.push(importedNote); // AGREGAR a la lista
+                saveData(); 
+                selectNote(importedNote.id); // Seleccionar la nota recién importada
+                alert(`Nota "${importedNote.titulo}" importada y agregada exitosamente.`);
+
+            } else {
+                alert("Error: El archivo de notas importado no parece ser una nota individual válida.");
+            }
+        } catch (error) {
+            alert("Error al leer el archivo. Asegúrate de que sea un JSON (.notes) válido.");
+            console.error(error);
+        }
+    };
+    reader.readAsText(file);
+    document.getElementById("importNotesFile").value = ''; 
+};
+
+
+/* ============================================================
+    CONTROL DE ESTADO DE SALUD (FINE/CAUTION/DANGER)
+============================================================ */
+function changeHealthStatus(status) {
+    if (!personajeActual) return;
+    personajes[personajeActual].status = status;
+    saveData();
+    updateHealthUI(status);
+}
+
+function updateHealthUI(status) {
+    const textEl = document.getElementById("healthStatusText");
+    const barEl = document.getElementById("healthBar");
+    const statusPanel = document.getElementById("statusPanel");
+
+    if (personajeActual) {
+        statusPanel.style.display = 'block';
+    } else {
+        statusPanel.style.display = 'none';
+        return;
+    }
+
+    let color, text, width;
+    switch (status) {
+        case 'caution':
+            color = '#ff0';
+            text = 'CAUTION';
+            width = '60%';
+            break;
+        case 'danger':
+            color = '#f00';
+            text = 'DANGER';
+            width = '30%';
+            break;
+        case 'fine':
+        default:
+            color = '#0f0';
+            text = 'FINE';
+            width = '100%';
+            break;
+    document.getElementById("sndPickup").play(); 
+    }
+
+    textEl.textContent = text;
+    textEl.style.color = color;
+    textEl.style.textShadow = `0 0 3px ${color}`;
+    barEl.style.background = color;
+    barEl.style.width = width;
+}
+
+
+/* ============================================================
+    LISTA DE PERSONAJES (Y SUS ACCIONES ABIERTAS) - CORREGIDO
+============================================================ */
+function renderListaPersonajes() {
+    const cont = document.getElementById("listaPersonajes");
+    const btnEliminar = document.getElementById("btnEliminarPJ");
+    cont.innerHTML = "";
+    
+    const nombresPersonajes = Object.keys(personajes);
+
+    // ARREGLO CRÍTICO: Si no hay PJ seleccionado, selecciona el primero.
+    if (!personajeActual && nombresPersonajes.length > 0) {
+        personajeActual = nombresPersonajes[0];
+    }
+
+    // Control de estado del botón de eliminar y la vista principal
+    if (personajeActual && personajes[personajeActual]) {
+        btnEliminar.disabled = false;
+        renderPersonajeActual(); // Dibuja el inventario del PJ seleccionado
+    } else {
+        btnEliminar.disabled = true;
+        personajeActual = null; 
+        document.getElementById("pjHeader").style.display = "none";
+        document.getElementById("statusPanel").style.display = "none"; // Ocultar barra de estado
+        document.getElementById("inventarioGrid").style.display = "none";
+        document.getElementById("inventarioPlaceholder").style.display = "block";
+        document.getElementById("panelAddItem").style.display = "none";
+        document.getElementById("colBaul").style.display = "block"; 
+        document.getElementById("nombrePJ").textContent = "Seleccioná un personaje";
+        document.getElementById("pjFoto").src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'; 
+    }
+
+    // Renderizar botones de personajes
+    nombresPersonajes.forEach(nombre => {
+        const btn = document.createElement("button");
+        btn.textContent = nombre;
+        btn.classList.toggle('selected', nombre === personajeActual); 
+        
+        btn.onclick = () => {
+            personajeActual = nombre;
+            renderListaPersonajes(); 
+            document.getElementById("sndSelect").play();
+        };
+        cont.appendChild(btn);
+    });
+}
+
+// CREAR PERSONAJE (ACCIÓN ABIERTA) - CORREGIDO
+document.getElementById("btnCrearPJ").onclick = () => {
+    const nombre = document.getElementById("nuevoNombre").value.trim();
+    const slots = parseInt(document.getElementById("nuevoSlots").value);
+    const file = document.getElementById("nuevaFoto").files[0];
+
+    if (!nombre || !slots || slots < 1) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+        if (personajes[nombre]) {
+            alert("Ya existe un personaje con ese nombre.");
+            return;
+        }
+
+        personajes[nombre] = { 
+            slots: slots, 
+            items: [],
+            foto: reader.result,
+            baul: { slots: 15, items: [] },
+            status: 'fine' // NUEVO: Estado por defecto
+        };
+        saveData();
+
+        personajeActual = nombre; 
+        renderListaPersonajes(); 
+
+        document.getElementById("nuevoNombre").value = "";
+        document.getElementById("nuevoSlots").value = "";
+        document.getElementById("nuevaFoto").value = "";
+        document.getElementById("sndPickup").play(); 
+
+    };
+    
+    if (file) reader.readAsDataURL(file);
+    else reader.onload({ target: { result: null } });
+};
+
+// ELIMINAR PERSONAJE (ACCIÓN ABIERTA)
+document.getElementById("btnEliminarPJ").onclick = () => {
+    if (!personajeActual || !personajes[personajeActual]) return;
+
+    if (confirm(`¿Estás seguro de que quieres eliminar a ${personajeActual} y todo su inventario y baúl? Esta acción es irreversible.`)) {
+        delete personajes[personajeActual];
+        personajeActual = null;
+        saveData();
+        renderListaPersonajes();
+    }
+};
+
+/* ============================================================
+    RENDER INVENTARIO Y BAÚL
+============================================================ */
+function renderPersonajeActual() {
+    if (!personajeActual) return;
+    
+    const pj = personajes[personajeActual];
+    
+    document.getElementById("pjHeader").style.display = "flex";
+    document.getElementById("inventarioGrid").style.display = "grid";
+    document.getElementById("inventarioPlaceholder").style.display = "none";
+    document.getElementById("panelAddItem").style.display = "block";
+    
+    document.getElementById("nombrePJ").textContent = personajeActual;
+    document.getElementById("pjFoto").src = pj.foto || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'; 
+    
+    document.getElementById("baulSlotsInput").value = pj.baul.slots; 
+    
+    updateHealthUI(pj.status); // Actualizar la barra de estado
+    
+    renderGrid("inventarioGrid", pj.slots, pj.items, "inv");
+    renderGrid("baulGrid", pj.baul.slots, pj.baul.items, "baul");
+}
+
+function renderGrid(gridId, totalSlots, items, fromWhere) {
+    const grid = document.getElementById(gridId);
+    grid.innerHTML = "";
+
+    // Configura el número de columnas para el grid (8 para inventario, 5 para baul)
+    // El media query en CSS ajusta esto a 6 y 4 respectivamente en móvil (<960px).
+    grid.style.setProperty("--cols", fromWhere === "inv" ? personajes[personajeActual].slots : 5);
+
+    let slotOccupied = Array(totalSlots).fill(false);
+    let itemsByPos = {}; 
+
+    items.forEach(it => {
+        itemsByPos[it.pos] = it;
+        for (let i = 0; i < it.slotsUsados; i++) {
+            if (it.pos + i < totalSlots) { 
+                slotOccupied[it.pos + i] = true;
+            }
+        }
+    });
+
+    for (let i = 0; i < totalSlots; i++) {
+        
+        if (slotOccupied[i] && !itemsByPos[i]) {
+            continue;
+        }
+
+        const slot = document.createElement("div");
+        slot.className = "slot";
+
+        slot.dataset.index = i;
+        slot.dataset.from = fromWhere;
+
+        if (itemsByPos[i]) {
+            const it = itemsByPos[i];
+            
+            // Usamos gridColumn para que el slot se expanda de forma fluida
+            slot.style.gridColumn = "span " + it.slotsUsados; 
+            
+            // Quitamos el fondo y borde del slot para que solo el item se vea
+            slot.style.background = "transparent"; 
+            slot.style.border = "none"; 
+            
+            const itemEl = document.createElement("div");
+            itemEl.className = "item";
+            itemEl.draggable = true;
+            itemEl.dataset.id = it.id;
+            itemEl.dataset.from = fromWhere;
+
+            if (it.img) {
+                const img = document.createElement("img");
+                img.src = it.img;
+                itemEl.appendChild(img);
+            }
+
+            const label = document.createElement("span");
+            label.className = "item-label";
+            
+            // Añadir indicación visual si es un arma con stats
+            if (it.itemType !== 'generic' && Object.keys(it.stats).length > 0) {
+                 label.textContent = it.nombre + ' (' + (it.itemType === 'firearm' ? 'Fuego' : 'Melee') + ')';
+            } else {
+                 label.textContent = it.nombre;
+            }
+            itemEl.appendChild(label);
+            
+            if (it.cantidad && it.cantidad > 1) {
+                const count = document.createElement("span");
+                count.className = "item-count";
+                count.textContent = it.cantidad;
+                itemEl.appendChild(count);
+            }
+
+            itemEl.onclick = (e) => e.stopPropagation();
+
+            itemEl.oncontextmenu = (e) => {
+                e.preventDefault();
+                openContextMenu(e.clientX, e.clientY, it, fromWhere);
+            };
+
+            itemEl.addEventListener("dragstart", e => {
+                draggedItem = it;
+                draggedFrom = fromWhere;
+                itemEl.classList.add("dragging");
+            });
+            itemEl.addEventListener("dragend", e => {
+                itemEl.classList.remove("dragging");
+            });
+
+            slot.appendChild(itemEl);
+            
+            i += it.slotsUsados - 1; 
+        }
+
+        slot.addEventListener("dragover", e => {
+            e.preventDefault();
+            // Resaltar solo el slot si hay un ítem siendo arrastrado
+            if (draggedItem) {
+                slot.classList.add('drop-target');
+            }
+        });
+        slot.addEventListener("dragleave", () => {
+             slot.classList.remove('drop-target');
+        });
+        slot.addEventListener("drop", () => {
+            slot.classList.remove('drop-target');
+            dropItem(i, fromWhere);
+        });
+
+        grid.appendChild(slot);
+    }
+}
+
+
+// ACTUALIZAR BAÚL (ACCIÓN ABIERTA) - Mínimo 2 slots
+document.getElementById("btnActualizarBaul").onclick = () => {
+    if (!personajeActual) return;
+    const pj = personajes[personajeActual];
+
+    const newSlots = parseInt(document.getElementById("baulSlotsInput").value);
+    
+    // CAMBIO: Mínimo 2 slots
+    if (isNaN(newSlots) || newSlots < 2) {
+        alert("El baúl debe tener al menos 2 slots.");
+        document.getElementById("baulSlotsInput").value = pj.baul.slots;
+        return;
+    }
+    
+    let lastPos = pj.baul.items.reduce((max, item) => Math.max(max, item.pos + item.slotsUsados), 0);
+
+    if (newSlots < lastPos) {
+          alert(`No puedes reducir el espacio del baúl, ya hay ítems ocupando hasta el slot ${lastPos}.`);
+          document.getElementById("baulSlotsInput").value = pj.baul.slots;
+          return;
+    }
+    
+    pj.baul.slots = newSlots;
+    saveData();
+    renderPersonajeActual(); 
+};
+
+
+/* ============================================================
+    AGREGAR ÍTEM (Añadido campo Cantidad, TIPO/STATS y Descripción)
+============================================================ */
+document.getElementById("btnAgregarItem").onclick = () => {
+    if (!personajeActual) return;
+
+    const nombre = document.getElementById("itemNombre").value.trim();
+    const slots = parseInt(document.getElementById("itemSlots").value);
+    const cantidad = parseInt(document.getElementById("itemCantidad").value) || 1; 
+    const file = document.getElementById("itemImagen").files[0];
+    const itemType = document.getElementById("itemTypeSelect").value;
+    const description = document.getElementById("itemDescriptionInitial").value.trim(); // NUEVO: Descripción inicial
+
+    if (!nombre || !slots || slots < 1 || cantidad < 1) return;
+
+    const pj = personajes[personajeActual];
+    const freeIndex = findSpace(pj.slots, pj.items, slots);
+
+    if (freeIndex === -1) {
+        document.getElementById("mensajeEspacio").textContent = "No hay espacio suficiente.";
+        return;
+    }
+    
+    // Lógica de stats iniciales
+    let stats = {};
+    if (itemType === 'firearm') {
+        stats = { 
+            potencia: 10, 
+            velocidad_disparo: 5, 
+            velocidad_recarga: 4, 
+            capacidad: 10 
+        };
+    } else if (itemType === 'melee') {
+        stats = { 
+            potencia: 15, 
+            velocidad_ataque: 5, 
+            alcance: 1, 
+            durabilidad: 100 
+        };
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+        pj.items.push({
+            id: Date.now(),
+            nombre: nombre,
+            slotsUsados: slots,
+            img: reader.result,
+            pos: freeIndex,
+            cantidad: cantidad,
+            itemType: itemType,
+            stats: stats,
+            description: description // NUEVO: Guardar descripción
+        });
+
+        saveData();
+        renderPersonajeActual();
+        document.getElementById("sndPickup").play(); 
+    };
+    if (file) reader.readAsDataURL(file);
+    else reader.onload({ target: { result: null } });
+
+    document.getElementById("itemNombre").value = "";
+    document.getElementById("itemSlots").value = "";
+    document.getElementById("itemCantidad").value = "1"; 
+    document.getElementById("itemImagen").value = "";
+    document.getElementById("mensajeEspacio").textContent = "";
+    document.getElementById("itemTypeSelect").value = "generic";
+    document.getElementById("itemDescriptionInitial").value = ""; // Limpiar
+};
+
+function findSpace(total, items, need) {
+    let arr = Array(total).fill(false);
+    items.forEach(it => {
+        for (let i = 0; i < it.slotsUsados; i++)
+            arr[it.pos + i] = true;
+    });
+
+    for (let i = 0; i <= total - need; i++) {
+        let ok = true;
+        for (let j = 0; j < need; j++)
+            if (arr[i + j]) ok = false;
+        if (ok) return i;
+    }
+    return -1;
+}
+
+/* ============================================================
+    DRAG & DROP Y CONTEXT MENU 
+============================================================ */
+
+function dropItem(targetIndex, targetFrom) {
+    if (!draggedItem || !personajeActual) {
+        draggedItem = null;
+        return; 
+    }
+    
+    // Verificamos si se arrastra DENTRO del mismo contenedor (inventario -> inventario / baúl -> baúl)
+    // El movimiento entre contenedores solo se gestiona por el menú contextual
+    if (draggedFrom !== targetFrom) {
+        draggedItem = null;
+        return;
+    }
+
+    const pj = personajes[personajeActual];
+    const currentList = targetFrom === "inv" ? pj.items : pj.baul.items;
+    const totalSlots = targetFrom === "inv" ? pj.slots : pj.baul.slots;
+
+    // Lógica de dropItem para reposicionamiento interno
+    const tempTargetList = currentList.filter(it => it.id !== draggedItem.id);
+    
+    let canPlace = true;
+    for (let i = 0; i < draggedItem.slotsUsados; i++) {
+        const checkPos = targetIndex + i;
+        if (checkPos >= totalSlots) {
+             canPlace = false;
+             break;
+        }
+        if (tempTargetList.some(it => it.pos <= checkPos && it.pos + it.slotsUsados > checkPos)) {
+            canPlace = false;
+            break;
+        }
+    }
+
+    if (canPlace) {
+        draggedItem.pos = targetIndex; 
+        saveData();
+        renderPersonajeActual();
+        document.getElementById("sndMove").play();
+    } else {
+        alert("No hay espacio para soltar el ítem aquí.");
+    }
+
+    draggedItem = null;
+}
+
+/**
+ * Abre el menú contextual (clic derecho / long press).
+ */
+function openContextMenu(x, y, item, from) {
+    ctxTargetItem = item;
+    ctxTargetFrom = from;
+
+    // Actualiza los botones de mover
+    document.getElementById("ctxMoveToBaul").style.display = from === "inv" ? "block" : "none";
+    document.getElementById("ctxMoveToInv").style.display = from === "baul" ? "block" : "none";
+    
+    // NUEVO: Ocultar o mostrar botón de stats
+    const hasStats = item.itemType !== 'generic' && Object.keys(item.stats).length > 0;
+    document.getElementById("ctxViewStats").style.display = hasStats ? "block" : "none";
+
+    // Posiciona el menú cerca del ratón/toque
+    ctxMenu.style.left = `${x}px`;
+    ctxMenu.style.top = `${y}px`;
+    ctxMenu.style.display = 'block';
+    document.getElementById("sndPickup").play(); 
+}
+
+// Cierra el menú si se hace clic fuera
+document.addEventListener('click', (e) => {
+    if (!ctxMenu.contains(e.target) && !document.getElementById('statsModal').contains(e.target)) {
+        ctxMenu.style.display = 'none';
+    }
+});
+document.getElementById("ctxClose").onclick = () => {
+    ctxMenu.style.display = 'none';
+};
+
+// Eventos de botones del menú contextual
+document.getElementById("ctxMoveToBaul").onclick = () => { moveItem(ctxTargetItem, "baul"); };
+document.getElementById("ctxMoveToInv").onclick = () => { moveItem(ctxTargetItem, "inv"); };
+document.getElementById("ctxDelete").onclick = () => { deleteItem(ctxTargetItem, ctxTargetFrom); };
+document.getElementById("ctxViewStats").onclick = () => { openStatsModal(ctxTargetItem); }; // Ahora abre el modal
+
+/**
+ * Mueve el ítem a la lista de destino, buscando el primer espacio libre.
+ */
+function moveItem(item, toWhere) {
+    if (!personajeActual) return;
+    const pj = personajes[personajeActual];
+    
+    // --- 1. Determinar la ubicación de origen de forma robusta ---
+    let sourceList, targetList, targetTotalSlots;
+    let fromWhere;
+    
+    let invIndex = pj.items.findIndex(i => i.id === item.id);
+    
+    if (invIndex !== -1) {
+        fromWhere = "inv";
+        sourceList = pj.items;
+    } else {
+        fromWhere = "baul";
+        sourceList = pj.baul.items;
+    }
+    
+    if (fromWhere === toWhere) { 
+        ctxMenu.style.display = 'none';
+        return;
+    }
+    
+    targetList = toWhere === "inv" ? pj.items : pj.baul.items;
+    targetTotalSlots = toWhere === "inv" ? pj.slots : pj.baul.slots;
+    
+    // -----------------------------------------------------------
+
+    // 2. Eliminar de la lista de origen
+    const actualIndex = sourceList.findIndex(i => i.id === item.id);
+
+    if (actualIndex !== -1) {
+        sourceList.splice(actualIndex, 1);
+    } else {
+         alert("Error: Ítem no encontrado en la lista de origen.");
+         ctxMenu.style.display = 'none';
+         return;
+    }
+
+    // 3. Buscar espacio en la lista de destino
+    const freeIndex = findSpace(targetTotalSlots, targetList, item.slotsUsados);
+
+    if (freeIndex !== -1) {
+        // 4. Añadir a la lista de destino con la nueva posición
+        item.pos = freeIndex;
+        targetList.push(item);
+        document.getElementById("sndMove").play();
+    } else {
+        // 5. Fallback: Devolver a la lista de origen si no hay espacio
+        const fallbackList = fromWhere === "inv" ? pj.items : pj.baul.items;
+        const fallbackTotalSlots = fromWhere === "inv" ? pj.slots : pj.baul.slots;
+        const fallbackIndex = findSpace(fallbackTotalSlots, fallbackList, item.slotsUsados);
+        
+        item.pos = fallbackIndex !== -1 ? fallbackIndex : 0; 
+        fallbackList.push(item);
+        alert(`❌ No hay espacio suficiente en ${toWhere === 'inv' ? 'el inventario' : 'el baúl'} para mover este ítem. Fue devuelto a su lugar original.`);
+    }
+
+    saveData();
+    renderPersonajeActual();
+    ctxMenu.style.display = 'none';
+}
+
+/**
+ * Elimina el ítem permanentemente.
+ */
+function deleteItem(item, from) {
+    if (!personajeActual) return;
+    if (!confirm(`¿Estás seguro de que quieres eliminar "${item.nombre}"?`)) return;
+
+    const pj = personajes[personajeActual];
+    const list = from === "inv" ? pj.items : pj.baul.items; 
+
+    const itemIndex = list.findIndex(i => i.id === item.id);
+    if (itemIndex !== -1) {
+        list.splice(itemIndex, 1);
+        saveData();
+        renderPersonajeActual();
+        document.getElementById("sndMove").play();
+    }
+    ctxMenu.style.display = 'none';
+}
+
+/* ============================================================
+    NUEVO: LÓGICA DEL MODAL DE STATS
+============================================================ */
+const statsModal = document.getElementById("statsModal");
+const statsModalTitle = document.getElementById("statsModalTitle");
+const statsModalImage = document.getElementById("statsModalImage");
+const statsInputsContainer = document.getElementById("statsInputsContainer");
+const statsModalDescription = document.getElementById("statsModalDescription");
+
+document.getElementById("btnCloseStats").onclick = () => {
+    statsModal.style.display = 'none';
+    editingItem = null;
+};
+document.getElementById("btnSaveStats").onclick = saveStatsChanges;
+
+
+/**
+ * Abre y prepara el modal de edición de stats y descripción.
+ */
+function openStatsModal(item) {
+    ctxMenu.style.display = 'none';
+    editingItem = item;
+
+    statsModalTitle.textContent = `Mejorar/Ver: ${item.nombre}`;
+    
+    // Imagen
+    statsModalImage.src = item.img || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+    statsModalImage.style.display = item.img ? 'block' : 'none';
+
+    // Descripción
+    statsModalDescription.value = item.description || "";
+
+    // Stats
+    statsInputsContainer.innerHTML = "";
+    if (Object.keys(item.stats).length > 0) {
+        for (const [key, value] of Object.entries(item.stats)) {
+            const group = document.createElement("div");
+            group.className = "stat-input-group";
+            
+            const label = document.createElement("label");
+            // Formatea el nombre de la stat (ej: velocidad_disparo -> Velocidad Disparo)
+            label.textContent = key.replace(/_/g, ' ').toUpperCase(); 
+            label.htmlFor = `stat-input-${key}`;
+            
+            const input = document.createElement("input");
+            input.type = "number";
+            input.id = `stat-input-${key}`;
+            input.dataset.statKey = key;
+            input.value = value;
+            input.min = "0";
+
+            group.appendChild(label);
+            group.appendChild(input);
+            statsInputsContainer.appendChild(group);
+        }
+    } else {
+        statsInputsContainer.innerHTML = "<p style='color:#777;'>Este ítem no tiene estadísticas editables.</p>";
+    }
+
+    statsModal.style.display = 'flex';
+}
+
+/**
+ * Guarda los cambios del modal en el ítem actual.
+ */
+function saveStatsChanges() {
+    if (!editingItem) return;
+
+    // 1. Guardar Descripción
+    editingItem.description = statsModalDescription.value.trim();
+
+    // 2. Guardar Stats
+    const inputs = statsInputsContainer.querySelectorAll('input[type="number"]');
+    let statsUpdated = false;
+
+    inputs.forEach(input => {
+        const key = input.dataset.statKey;
+        const newValue = parseInt(input.value);
+
+        if (!isNaN(newValue) && newValue >= 0) {
+            if (editingItem.stats[key] !== newValue) {
+                editingItem.stats[key] = newValue;
+                statsUpdated = true;
+            }
+        } else {
+            // Manejo de error si el usuario ingresó algo no numérico/negativo
+            alert(`El valor para ${key.toUpperCase().replace(/_/g, ' ')} no es válido y no fue guardado.`);
+        }
+    });
+
+    saveData();
+    renderPersonajeActual();
+    statsModal.style.display = 'none';
+    editingItem = null;
+    alert("¡Mejoras y descripción guardadas con éxito!");
+}
+
+
+/* ============================================================
+    FUNCIÓN IMPORTAR AL BAÚL 
+============================================================ */
+
+
+function handleBaulImport(event) {
+    if (!personajeActual) {
+        alert("Debes seleccionar un personaje primero para importar al baúl.");
+        document.getElementById("importBaulFile").value = '';
+        return;
+    }
+
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const boughtItems = JSON.parse(e.target.result);
+
+            if (!Array.isArray(boughtItems)) {
+                alert("Error: El archivo de compra no tiene el formato de array esperado.");
+                return;
+            }
+
+            const pj = personajes[personajeActual];
+            const baulItems = pj.baul.items;
+            const baulSlots = pj.baul.slots;
+            
+            let newItemsCount = 0;
+            let currentUniqueId = Date.now(); 
+
+            boughtItems.forEach(item => {
+                const itemSlots = item.slotsUsados || 1; 
+
+                const freeIndex = findSpace(baulSlots, baulItems, itemSlots);
+                
+                if (freeIndex !== -1) {
+                    baulItems.push({
+                        id: currentUniqueId++, 
+                        nombre: item.nombre,
+                        slotsUsados: itemSlots,
+                        img: item.img || '',
+                        pos: freeIndex, 
+                        cantidad: item.cantidad || 1,
+                        itemType: item.itemType || 'generic',
+                        stats: item.stats || {},
+                        description: item.description || '' // Importar descripción
+                    });
+                    newItemsCount++;
+                } else {
+                    alert(`El baúl está lleno. No se pudo importar el ítem: ${item.nombre}`);
+                    return; 
+                }
+            });
+
+            if (newItemsCount > 0) {
+                saveData();
+                renderPersonajeActual();
+                alert(`¡${newItemsCount} ítem(s) importado(s) al baúl!`);
+            } else if (boughtItems.length > 0) {
+                 alert("No se pudo importar ningún ítem. El baúl está lleno o ya se alertó sobre la falta de espacio.");
+            } else {
+                alert("El archivo de compra estaba vacío.");
+            }
+
+        } catch (error) {
+            alert("Error al leer el archivo. Asegúrate de que sea el JSON de compra válido.");
+            console.error(error);
+        }
+    };
+    reader.readAsText(file);
+    document.getElementById("importBaulFile").value = '';
+}
+
+/* ============================================================
+    FUNCIÓN DE CONTROL DE VOLUMEN
+============================================================ */
+function toggleVolume() {
+    const bgm = document.getElementById("bgm");
+    const btn = document.getElementById("btnToggleVolume");
+
+    if (bgm.volume > 0.4) {
+        // Bajar volumen a modo "ambiente suave" (10%)
+        bgm.volume = 0.1; 
+        btn.textContent = '🔈';
+    } else if (bgm.volume === 0.1) {
+        // Subir volumen a modo "normal" (50%)
+        bgm.volume = 0.5; 
+        btn.textContent = '🔉';
+    } else {
+        // Si estaba en 0.5, mutar
+        bgm.volume = 0.0;
+        btn.textContent = '🔇';
+    }
+}
+
+document.getElementById("btnToggleVolume").onclick = toggleVolume;
+
+
+/* ============================================================
+    INICIALIZACIÓN
+============================================================ */
+// Inicializar
+renderListaPersonajes(); 
+renderNotasList();
+
+// Establecer volumen inicial (0.5)
+const bgm = document.getElementById("bgm");
+bgm.volume = 0.5;
+document.getElementById("btnToggleVolume").textContent = '🔉';
+
+
+// Habilitar música al primer clic en cualquier parte de la página
+document.onclick = () => {
+    const bgm = document.getElementById("bgm");
+    if (bgm.paused) {
+        bgm.play().catch(e => console.log("Autoplay blocked:", e));
+    }
+};
+
+</script>
+
+</body>
+</html>
