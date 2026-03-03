@@ -737,6 +737,26 @@ input[type="file"] {
     margin-bottom: 10px;
 }
 
+@media (max-width: 900px) {
+    .context-button button {
+        /* Evita que el sistema intente "seleccionar" el texto del botón */
+        user-select: none;
+        -webkit-tap-highlight-color: rgba(0,242,255,0.3);
+        
+        /* Asegura que el área de clic sea toda la caja */
+        display: block;
+        width: 100%;
+        position: relative;
+        z-index: 1000001;
+    }
+    
+    /* Efecto visual de pulsación (Feedback) */
+    .context-button button:active {
+        background: #00f2ff !important;
+        color: #000 !important;
+    }
+}
+
 /* Estilo para etiquetas informativas */
 .infoRow { margin-top: 10px; color: #ff9d00; font-size: 11px; }
 </style>
@@ -1050,6 +1070,49 @@ function abrirMenuTerminal(e, targetItem) {
         menuC.style.top = e.pageY + "px";
         menuC.style.left = e.pageX + "px";
     }
+}
+
+
+// Variable global para guardar el ítem que activó el menú
+let itemSeleccionadoGlobal = null;
+
+// Función para abrir el menú (llámala desde tu Long Press)
+function abrirMenuTerminal(e, targetItem) {
+    const menuC = document.querySelector('.context-menu');
+    
+    // GUARDAR REFERENCIA: Esto es lo que falta para que "Eliminar" sepa qué borrar
+    itemSeleccionadoGlobal = targetItem; 
+    
+    menuC.style.display = 'block';
+    
+    // Posicionamiento
+    if (window.innerWidth > 900) {
+        menuC.style.top = e.pageY + "px";
+        menuC.style.left = e.pageX + "px";
+    }
+}
+
+// LOGICA DE BOTONES (Asegúrate de que tus funciones se llamen así)
+function accionMoverAlBaul() {
+    if (!itemSeleccionadoGlobal) return;
+    console.log("Moviendo al baúl:", itemSeleccionadoGlobal.id);
+    // Agregá aquí tu lógica para moverlo...
+    
+    cerrarMenu();
+}
+
+function accionEliminar() {
+    if (!itemSeleccionadoGlobal) return;
+    if (confirm("¿ELIMINAR OBJETO DE LA MEMORIA?")) {
+        itemSeleccionadoGlobal.remove(); // Borra el elemento del DOM
+        cerrarMenu();
+    }
+}
+
+function cerrarMenu() {
+    const menuC = document.querySelector('.context-menu');
+    menuC.style.display = 'none';
+    itemSeleccionadoGlobal = null; // Limpiamos la referencia
 }
 
 // LÓGICA DE TOQUES PARA CELULAR
