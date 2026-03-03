@@ -146,6 +146,12 @@ body {
     box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
 }
 
+
+.context-menu {
+    z-index: 999999 !important; /* Por encima de absolutamente todo */
+    pointer-events: auto !important; /* Asegura que reciba los toques */
+}
+
 /* Items que ocupan TODO el espacio del slot */
 .item {
     display: flex;
@@ -1029,48 +1035,56 @@ let editingItem = null; // NUEVO: Para almacenar el ítem que se está editando 
 const SLOT_SIZE = 60; 
 const GAP_SIZE = 6;   
 
-let toqueTemporizador;
-const esCelular = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+let toqueTimer;
+const menuC = document.querySelector('.context-menu');
 
+// Función para abrir el menú (centralizada)
+function abrirMenuTerminal(e, targetItem) {
+    // Guardar referencia del item para las funciones de stats/eliminar
+    window.itemActivo = targetItem; 
+    
+    menuC.style.display = 'block';
+    
+    // Si no es móvil, lo posicionamos donde está el mouse
+    if (window.innerWidth > 900) {
+        menuC.style.top = e.pageY + "px";
+        menuC.style.left = e.pageX + "px";
+    }
+}
+
+// LÓGICA DE TOQUES PARA CELULAR
 document.addEventListener('touchstart', function(e) {
     const item = e.target.closest('.item');
     
-    if (item && esCelular) {
-        // 1. Cancelamos cualquier comportamiento de "arrastre" nativo
-        // e.preventDefault(); // Descomentar si el drag & drop sigue molestando
+    // Si tocamos el menú, no hacemos nada (permitimos que funcionen sus botones)
+    if (e.target.closest('.context-menu')) return;
 
-        // 2. Iniciamos el contador para el menú (500ms)
-        toqueTemporizador = setTimeout(() => {
-            // Vibración sutil de feedback (si el celu lo permite)
-            if (navigator.vibrate) navigator.vibrate(50);
-            
-            // Llamamos a tu función de abrir menú
-            // Pasamos el evento y el item detectado
-            abrirMenuContexto(e, item);
-        }, 500);
+    if (item) {
+        // Iniciamos contador de 500ms para el menú
+        toqueTimer = setTimeout(() => {
+            if (navigator.vibrate) navigator.vibrate(40); // Feedback táctil
+            abrirMenuTerminal(e.touches[0], item);
+        }, 600);
+    } else {
+        // Si tocamos fuera de un item y del menú, cerramos el menú
+        if (!e.target.closest('.context-menu')) {
+            menuC.style.display = 'none';
+        }
     }
-}, { passive: false });
+}, { passive: true });
 
 document.addEventListener('touchend', function() {
-    if (toqueTemporizador) clearTimeout(toqueTemporizador);
-}, false);
+    clearTimeout(toqueTimer);
+});
 
-// Ajuste en tu función de abrir menú para que sea compatible con toques
-function abrirMenuContexto(e, itemElement) {
-    const menu = document.querySelector('.context-menu');
-    
-    // Guardamos el ID del item actual en el menú para que los botones sepan qué editar
-    menu.dataset.itemTarget = itemElement.id; 
+// EVITAR QUE EL MENÚ SE CIERRE AL TOCAR SUS PROPIOS BOTONES
+menuC.addEventListener('touchstart', function(e) {
+    e.stopPropagation(); // Esto impide que el toque "atraviese" el menú
+}, { passive: true });
 
-    menu.style.display = 'block';
-
-    // En celu, el CSS que te pasé antes lo centrará. 
-    // Para PC, usamos las coordenadas del mouse:
-    if (!esCelular) {
-        menu.style.top = e.pageY + "px";
-        menu.style.left = e.pageX + "px";
-    }
-}
+menuC.addEventListener('click', function(e) {
+    e.stopPropagation();
+});
 
 function actualizarTextoArchivo(input) {
     const label = document.getElementById('label-foto-item');
