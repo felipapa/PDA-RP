@@ -1115,6 +1115,40 @@ function cerrarMenu() {
     itemSeleccionadoGlobal = null;
 }
 
+// LÓGICA DE TOQUES PARA CELULAR
+document.addEventListener('touchstart', function(e) {
+    const item = e.target.closest('.item');
+    
+    // Si tocamos el menú, no hacemos nada (permitimos que funcionen sus botones)
+    if (e.target.closest('.context-menu')) return;
+
+    if (item) {
+        // Iniciamos contador de 500ms para el menú
+        toqueTimer = setTimeout(() => {
+            if (navigator.vibrate) navigator.vibrate(40); // Feedback táctil
+            abrirMenuTerminal(e.touches[0], item);
+        }, 600);
+    } else {
+        // Si tocamos fuera de un item y del menú, cerramos el menú
+        if (!e.target.closest('.context-menu')) {
+            menuC.style.display = 'none';
+        }
+    }
+}, { passive: true });
+
+document.addEventListener('touchend', function() {
+    clearTimeout(toqueTimer);
+});
+
+// EVITAR QUE EL MENÚ SE CIERRE AL TOCAR SUS PROPIOS BOTONES
+menuC.addEventListener('touchstart', function(e) {
+    e.stopPropagation(); // Esto impide que el toque "atraviese" el menú
+}, { passive: true });
+
+menuC.addEventListener('click', function(e) {
+    e.stopPropagation();
+});
+
 function actualizarTextoArchivo(input) {
     const label = document.getElementById('label-foto-item');
     if (input.files && input.files[0]) {
