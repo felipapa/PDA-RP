@@ -1458,68 +1458,96 @@ window.onload = () => {
 ============================================================ */
 let personajes = JSON.parse(localStorage.getItem("personajes")) || {};
 let notasGlobales = JSON.parse(localStorage.getItem("notasGlobales")) || [];
-
 let personajeActual = null;
-let notaActualId = null; 
-
+let notaActualId = null;
 let draggedItem = null;
 let draggedFrom = null;
 
 const ctxMenu = document.getElementById("contextMenu");
 let ctxTargetItem = null;
 let ctxTargetFrom = null;
+let editingItem = null;
 
-let editingItem = null; // NUEVO: Para almacenar el ítem que se está editando en el modal de stats
-
-/* Constantes para el cálculo visual del grid (ya no se usan para el ancho fijo) */
-const SLOT_SIZE = 60; 
-const GAP_SIZE = 6;   
-
-
-
-let toqueTimer;
-let itemSeleccionadoGlobal = null;
+const SLOT_SIZE = 60;
+const GAP_SIZE = 6;
 const esCelular = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-// --- GESTIÓN DE ITEMS ---
-document.addEventListener('touchstart', function(e) {
-    const item = e.target.closest('.item');
-    if (!item || !esCelular) return;
+/* ============================================================
+    SISTEMA LONG PRESS / MENÚ CONTEXTUAL MÓVIL
+============================================================ */
+let toqueTimer = null;
+let toqueMoved = false;
 
-    // Si es celu, esperamos el long press
+document.addEventListener('touchstart', (e) => {
+    const item = e.target.closest('.item');
+    if (!item) return;
+
+    toqueMoved = false;
+
     toqueTimer = setTimeout(() => {
-        if (navigator.vibrate) navigator.vibrate(50); // Vibración de confirmación
-        itemSeleccionadoGlobal = item;
+        if (toqueMoved) return;
+        if (navigator.vibrate) navigator.vibrate(50);
+
+        // Leer datos del ítem desde el DOM para setear ctxTarget correctamente
+        const itemId = parseInt(item.dataset.id);
+        const fromWhere = item.dataset.from;
+
+        if (!personajeActual) return;
+        const pj = personajes[personajeActual];
+        const lista = fromWhere === 'inv' ? pj.items : pj.baul.items;
+        const itemData = lista.find(i => i.id === itemId);
+
+        if (!itemData) return;
+
+        ctxTargetItem = itemData;
+        ctxTargetFrom = fromWhere;
         abrirPanelMovil();
-    }, 600); 
+    }, 600);
 }, { passive: true });
 
-document.addEventListener('touchend', () => clearTimeout(toqueTimer));
-document.addEventListener('touchmove', () => clearTimeout(toqueTimer)); // Si desliza, cancelamos
+document.addEventListener('touchmove', () => {
+    toqueMoved = true;
+    clearTimeout(toqueTimer);
+}, { passive: true });
 
-// --- FUNCIONES DEL PANEL ---
+document.addEventListener('touchend', () => clearTimeout(toqueTimer), { passive: true });
+
+// Prevenir menú nativo solo en móvil
+if (esCelular) {
+    window.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    });
+}
+
 function abrirPanelMovil() {
-    document.getElementById('mobileActionSheet').classList.add('active');
-    document.body.style.overflow = 'hidden'; // Evita scroll de fondo
+    // Sincronizar opciones del panel con el ctxTargetItem actual
+    const sheet = document.getElementById('mobileActionSheet');
+    if (!sheet || !ctxTargetItem) return;
+
+    const btnMoveBaul = document.getElementById('mobileMoveToBaul');
+    const btnMoveInv  = document.getElementById('mobileMoveToInv');
+    const btnStats    = document.getElementById('mobileViewStats');
+
+    if (btnMoveBaul) btnMoveBaul.style.display = ctxTargetFrom === 'inv'  ? 'block' : 'none';
+    if (btnMoveInv)  btnMoveInv.style.display  = ctxTargetFrom === 'baul' ? 'block' : 'none';
+
+    const hasStats = ctxTargetItem.itemType !== 'generic' && Object.keys(ctxTargetItem.stats).length > 0;
+    if (btnStats) btnStats.style.display = hasStats ? 'block' : 'none';
+
+    sheet.classList.add('active');
+    document.body.style.overflow = 'hidden';
 }
 
 function cerrarPanelMovil() {
-    document.getElementById('mobileActionSheet').classList.remove('active');
+    const sheet = document.getElementById('mobileActionSheet');
+    if (sheet) sheet.classList.remove('active');
     document.body.style.overflow = 'auto';
 }
 
-// --- PREVENIR MENÚ NATIVO EN CELU ---
-window.oncontextmenu = function(event) {
-    if (esCelular) {
-        event.preventDefault();
-        event.stopPropagation();
-        return false;
-    }
-};
-
-
-// Vinculación: Asegúrate de que tus ítems tengan onclick="manejarClickItem(event, this)"
-
+/* ============================================================
+    ACTUALIZAR TEXTO ARCHIVO
+============================================================ */
 function actualizarTextoArchivo(input) {
     const label = document.getElementById('label-foto-item');
     if (input.files && input.files[0]) {
@@ -1530,7 +1558,6 @@ function actualizarTextoArchivo(input) {
     }
 }
 
-
 /* ============================================================
     GUARDAR DATOS
 ============================================================ */
@@ -1539,18 +1566,16 @@ function saveData() {
     localStorage.setItem("notasGlobales", JSON.stringify(notasGlobales));
 }
 
-
 /* ============================================================
     EXPORTAR / IMPORTAR INVENTARIO
 ============================================================ */
 document.getElementById("btnExportData").onclick = () => {
-    const data = JSON.stringify(personajes, null, 2);
-    const blob = new Blob([data], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(personajes, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `inventario_re_export_${new Date().toISOString().slice(0, 10)}.json`;
+    const a = Object.assign(document.createElement('a'), {
+        href: url,
+        download: `inventario_re_export_${new Date().toISOString().slice(0, 10)}.json`
+    });
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -1558,9 +1583,7 @@ document.getElementById("btnExportData").onclick = () => {
     alert("Inventario exportado exitosamente como JSON.");
 };
 
-document.getElementById("btnImportTrigger").onclick = () => {
-    document.getElementById("importFile").click();
-};
+document.getElementById("btnImportTrigger").onclick = () => document.getElementById("importFile").click();
 
 document.getElementById("importFile").onchange = (event) => {
     const file = event.target.files[0];
@@ -1570,84 +1593,75 @@ document.getElementById("importFile").onchange = (event) => {
     reader.onload = (e) => {
         try {
             const importedData = JSON.parse(e.target.result);
-
-            if (typeof importedData === 'object' && Object.keys(importedData).every(key => importedData[key].slots !== undefined)) {
-                
+            if (typeof importedData === 'object' && Object.keys(importedData).every(k => importedData[k].slots !== undefined)) {
                 personajes = importedData;
-                personajeActual = null; 
-                saveData(); 
+                personajeActual = null;
+                saveData();
                 renderListaPersonajes();
                 alert("Inventario importado exitosamente. Los datos anteriores fueron reemplazados.");
-
             } else {
                 alert("Error: El archivo JSON importado no parece ser un archivo de inventario válido.");
             }
-        } catch (error) {
+        } catch {
             alert("Error al leer el archivo. Asegúrate de que sea un JSON válido.");
-            console.error(error);
         }
     };
     reader.readAsText(file);
-    document.getElementById("importFile").value = ''; 
+    event.target.value = '';
 };
 
-
 /* ============================================================
-    SISTEMA DE NOTAS (LORE) CON IMAGEN - MODIFICADO PARA INDIVIDUAL
+    SISTEMA DE NOTAS (LORE)
 ============================================================ */
 function renderNotasList() {
     const list = document.getElementById("notasList");
     list.innerHTML = "";
-    
+
     if (notasGlobales.length === 0) {
-        notasGlobales.push({ 
-            id: Date.now(), 
-            titulo: "Pista Inicial (Lore)", 
-            contenido: "Presiona 'Nueva Nota' para empezar a escribir. Puedes agregar una imagen opcional para contextualizar.",
+        notasGlobales.push({
+            id: Date.now(),
+            titulo: "Pista Inicial (Lore)",
+            contenido: "Presiona 'Nueva Nota' para empezar a escribir.",
             imagen: null
         });
         saveData();
     }
-    
+
     notasGlobales.forEach(note => {
         const btn = document.createElement("button");
         btn.textContent = note.titulo;
-        btn.classList.toggle('selected', note.id === notaActualId); 
+        btn.classList.toggle('selected', note.id === notaActualId);
         btn.dataset.id = note.id;
-        
         btn.onclick = () => selectNote(note.id);
-
         list.appendChild(btn);
     });
 
-    if (!notaActualId && notasGlobales.length > 0) {
-        selectNote(notasGlobales[0].id);
-    } else if (notasGlobales.length > 0 && !notasGlobales.some(n => n.id === notaActualId)) {
+    if (!notaActualId || !notasGlobales.some(n => n.id === notaActualId)) {
         selectNote(notasGlobales[0].id);
     }
-    document.getElementById("sndPickup").play(); 
 
+    document.getElementById("sndPickup").play();
 }
 
 function selectNote(id) {
     notaActualId = id;
     const note = notasGlobales.find(n => n.id === id);
-    if (note) {
-        document.getElementById("noteTitleInput").value = note.titulo;
-        document.getElementById("noteContent").value = note.contenido;
-        
-        // Mostrar imagen
-        const imgPreview = document.getElementById("noteImagePreview");
-        if (note.imagen) {
-            imgPreview.src = note.imagen;
-            imgPreview.style.display = 'block';
-        } else {
-            imgPreview.src = '';
-            imgPreview.style.display = 'none';
-        }
+    if (!note) return;
+
+    document.getElementById("noteTitleInput").value = note.titulo;
+    document.getElementById("noteContent").value = note.contenido;
+
+    const imgPreview = document.getElementById("noteImagePreview");
+    if (note.imagen) {
+        imgPreview.src = note.imagen;
+        imgPreview.style.display = 'block';
+    } else {
+        imgPreview.src = '';
+        imgPreview.style.display = 'none';
     }
-    document.getElementById("noteImageUpload").value = ''; // Limpia el input de archivo
-    renderNotasList(); 
+
+    document.getElementById("noteImageUpload").value = '';
+    renderNotasList();
 }
 
 document.getElementById("btnNewNote").onclick = () => {
@@ -1660,122 +1674,87 @@ document.getElementById("btnNewNote").onclick = () => {
 
 document.getElementById("btnSaveNote").onclick = () => {
     if (!notaActualId) return;
-
     const noteIndex = notasGlobales.findIndex(n => n.id === notaActualId);
-    if (noteIndex !== -1) {
-        const file = document.getElementById("noteImageUpload").files[0];
-        const note = notasGlobales[noteIndex];
+    if (noteIndex === -1) return;
 
-        // Manejar la imagen
+    const note = notasGlobales[noteIndex];
+    const file = document.getElementById("noteImageUpload").files[0];
+
+    const doSave = (imgResult) => {
+        note.titulo = document.getElementById("noteTitleInput").value;
+        note.contenido = document.getElementById("noteContent").value;
+        if (imgResult) note.imagen = imgResult;
+        saveData();
+        selectNote(note.id);
+        alert("Nota guardada.");
+    };
+
+    if (file) {
         const reader = new FileReader();
-        reader.onload = (e) => {
-            note.titulo = document.getElementById("noteTitleInput").value;
-            note.contenido = document.getElementById("noteContent").value;
-            
-            // Si hay archivo cargado, usa la nueva imagen, sino conserva la que ya tiene.
-            if (e.target.result) {
-                note.imagen = e.target.result;
-            } 
-            
-            saveData();
-            selectNote(note.id); // Vuelve a seleccionar para actualizar la vista previa
-            alert("Nota guardada.");
-        };
-
-        if (file) {
-            reader.readAsDataURL(file);
-        } else {
-            // Si no se cargó un archivo, ejecuta el guardado directo
-            reader.onload({ target: { result: null } }); 
-        }
+        reader.onload = (e) => doSave(e.target.result);
+        reader.readAsDataURL(file);
+    } else {
+        doSave(null);
     }
 };
 
 document.getElementById("btnDeleteNote").onclick = () => {
     if (!notaActualId) return;
-
-    if (notasGlobales.length === 1) {
-        // Usar modal o simulación de confirm
-        if (confirm("No puedes eliminar la única nota que existe.")) { /* No action, just informational */ }
-        return;
-    }
-
-    // Usar modal o simulación de confirm
+    if (notasGlobales.length === 1) { alert("No puedes eliminar la única nota que existe."); return; }
     if (confirm("¿Estás seguro de que quieres eliminar esta nota?")) {
         notasGlobales = notasGlobales.filter(n => n.id !== notaActualId);
-        notaActualId = notasGlobales[0].id; 
+        notaActualId = notasGlobales[0].id;
         saveData();
         selectNote(notaActualId);
-        // Usar modal o simulación de alert
-        if (confirm("Nota eliminada.")) { /* No action, just informational */ }
+        alert("Nota eliminada.");
     }
 };
 
-// EXPORTAR NOTA INDIVIDUAL (MODIFICADO)
 document.getElementById("btnExportNotas").onclick = () => {
-    if (!notaActualId) {
-        alert("Selecciona una nota para exportar.");
-        return;
-    }
-    
+    if (!notaActualId) { alert("Selecciona una nota para exportar."); return; }
     const note = notasGlobales.find(n => n.id === notaActualId);
     if (!note) return;
 
-    const data = JSON.stringify(note, null, 2); // Exportar solo la nota seleccionada
-    const blob = new Blob([data], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(note, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = url;
     const safeTitle = note.titulo.replace(/[^a-z0-9]/gi, '_').toLowerCase().substring(0, 30);
-    a.download = `nota_${safeTitle}.notes`; 
+    const a = Object.assign(document.createElement('a'), { href: url, download: `nota_${safeTitle}.notes` });
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    alert(`Nota "${note.titulo}" exportada exitosamente como .notes.`);
+    alert(`Nota "${note.titulo}" exportada exitosamente.`);
 };
 
-// IMPORTAR NOTA INDIVIDUAL (MODIFICADO: AÑADE la nota)
-document.getElementById("btnImportNotesTrigger").onclick = () => {
-    document.getElementById("importNotesFile").click();
-};
+document.getElementById("btnImportNotesTrigger").onclick = () => document.getElementById("importNotesFile").click();
 
 document.getElementById("importNotesFile").onchange = (event) => {
     const file = event.target.files[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = (e) => {
         try {
             const importedNote = JSON.parse(e.target.result);
-
-            if (typeof importedNote === 'object' && importedNote !== null && 
+            if (typeof importedNote === 'object' && importedNote !== null &&
                 importedNote.titulo !== undefined && importedNote.contenido !== undefined) {
-                
-                // Generar un nuevo ID para evitar colisiones
-                importedNote.id = Date.now(); 
-                
-                notasGlobales.push(importedNote); // AGREGAR a la lista
-                saveData(); 
-                selectNote(importedNote.id); // Seleccionar la nota recién importada
-                alert(`Nota "${importedNote.titulo}" importada y agregada exitosamente.`);
-
+                importedNote.id = Date.now();
+                notasGlobales.push(importedNote);
+                saveData();
+                selectNote(importedNote.id);
+                alert(`Nota "${importedNote.titulo}" importada y agregada.`);
             } else {
-                alert("Error: El archivo de notas importado no parece ser una nota individual válida.");
+                alert("Error: El archivo no parece ser una nota individual válida.");
             }
-        } catch (error) {
+        } catch {
             alert("Error al leer el archivo. Asegúrate de que sea un JSON (.notes) válido.");
-            console.error(error);
         }
     };
     reader.readAsText(file);
-    document.getElementById("importNotesFile").value = ''; 
+    event.target.value = '';
 };
 
-
 /* ============================================================
-    CONTROL DE ESTADO DE SALUD (FINE/CAUTION/DANGER)
+    CONTROL DE ESTADO DE SALUD
 ============================================================ */
 function changeHealthStatus(status) {
     if (!personajeActual) return;
@@ -1785,37 +1764,19 @@ function changeHealthStatus(status) {
 }
 
 function updateHealthUI(status) {
-    const textEl = document.getElementById("healthStatusText");
-    const barEl = document.getElementById("healthBar");
+    const textEl    = document.getElementById("healthStatusText");
+    const barEl     = document.getElementById("healthBar");
     const statusPanel = document.getElementById("statusPanel");
 
-    if (personajeActual) {
-        statusPanel.style.display = 'block';
-    } else {
-        statusPanel.style.display = 'none';
-        return;
-    }
+    statusPanel.style.display = personajeActual ? 'block' : 'none';
+    if (!personajeActual) return;
 
-    let color, text, width;
-    switch (status) {
-        case 'caution':
-            color = '#ff0';
-            text = 'CAUTION';
-            width = '60%';
-            break;
-        case 'danger':
-            color = '#f00';
-            text = 'DANGER';
-            width = '30%';
-            break;
-        case 'fine':
-        default:
-            color = '#0f0';
-            text = 'FINE';
-            width = '100%';
-            break;
-    document.getElementById("sndPickup").play(); 
-    }
+    const map = {
+        caution: { color: '#ff0', text: 'CAUTION', width: '60%' },
+        danger:  { color: '#f00', text: 'DANGER',  width: '30%' },
+        fine:    { color: '#0f0', text: 'FINE',     width: '100%' }
+    };
+    const { color, text, width } = map[status] || map.fine;
 
     textEl.textContent = text;
     textEl.style.color = color;
@@ -1824,97 +1785,80 @@ function updateHealthUI(status) {
     barEl.style.width = width;
 }
 
-
 /* ============================================================
-    LISTA DE PERSONAJES (Y SUS ACCIONES ABIERTAS) - CORREGIDO
+    LISTA DE PERSONAJES
 ============================================================ */
 function renderListaPersonajes() {
     const cont = document.getElementById("listaPersonajes");
     const btnEliminar = document.getElementById("btnEliminarPJ");
     cont.innerHTML = "";
-    
-    const nombresPersonajes = Object.keys(personajes);
 
-    // ARREGLO CRÍTICO: Si no hay PJ seleccionado, selecciona el primero.
-    if (!personajeActual && nombresPersonajes.length > 0) {
-        personajeActual = nombresPersonajes[0];
-    }
+    const nombres = Object.keys(personajes);
+    if (!personajeActual && nombres.length > 0) personajeActual = nombres[0];
 
-    // Control de estado del botón de eliminar y la vista principal
     if (personajeActual && personajes[personajeActual]) {
         btnEliminar.disabled = false;
-        renderPersonajeActual(); // Dibuja el inventario del PJ seleccionado
+        renderPersonajeActual();
     } else {
         btnEliminar.disabled = true;
-        personajeActual = null; 
+        personajeActual = null;
         document.getElementById("pjHeader").style.display = "none";
-        document.getElementById("statusPanel").style.display = "none"; // Ocultar barra de estado
+        document.getElementById("statusPanel").style.display = "none";
         document.getElementById("inventarioGrid").style.display = "none";
         document.getElementById("inventarioPlaceholder").style.display = "block";
         document.getElementById("panelAddItem").style.display = "none";
-        document.getElementById("colBaul").style.display = "block"; 
+        document.getElementById("colBaul").style.display = "block";
         document.getElementById("nombrePJ").textContent = "Seleccioná un personaje";
-        document.getElementById("pjFoto").src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'; 
+        document.getElementById("pjFoto").src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
     }
 
-    // Renderizar botones de personajes
-    nombresPersonajes.forEach(nombre => {
+    nombres.forEach(nombre => {
         const btn = document.createElement("button");
         btn.textContent = nombre;
-        btn.classList.toggle('selected', nombre === personajeActual); 
-        
+        btn.classList.toggle('selected', nombre === personajeActual);
         btn.onclick = () => {
             personajeActual = nombre;
-            renderListaPersonajes(); 
+            renderListaPersonajes();
             document.getElementById("sndSelect").play();
         };
         cont.appendChild(btn);
     });
 }
 
-// CREAR PERSONAJE (ACCIÓN ABIERTA) - CORREGIDO
 document.getElementById("btnCrearPJ").onclick = () => {
     const nombre = document.getElementById("nuevoNombre").value.trim();
     const slots = parseInt(document.getElementById("nuevoSlots").value);
     const file = document.getElementById("nuevaFoto").files[0];
 
     if (!nombre || !slots || slots < 1) return;
+    if (personajes[nombre]) { alert("Ya existe un personaje con ese nombre."); return; }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-        if (personajes[nombre]) {
-            alert("Ya existe un personaje con ese nombre.");
-            return;
-        }
-
-        personajes[nombre] = { 
-            slots: slots, 
-            items: [],
-            foto: reader.result,
+    const doCreate = (imgResult) => {
+        personajes[nombre] = {
+            slots, items: [],
+            foto: imgResult,
             baul: { slots: 15, items: [] },
-            status: 'fine' // NUEVO: Estado por defecto
+            status: 'fine'
         };
         saveData();
-
-        personajeActual = nombre; 
-        renderListaPersonajes(); 
-
-        document.getElementById("nuevoNombre").value = "";
-        document.getElementById("nuevoSlots").value = "";
-        document.getElementById("nuevaFoto").value = "";
-        document.getElementById("sndPickup").play(); 
-
+        personajeActual = nombre;
+        renderListaPersonajes();
+        ["nuevoNombre", "nuevoSlots", "nuevaFoto"].forEach(id => document.getElementById(id).value = "");
+        document.getElementById("sndPickup").play();
     };
-    
-    if (file) reader.readAsDataURL(file);
-    else reader.onload({ target: { result: null } });
+
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => doCreate(e.target.result);
+        reader.readAsDataURL(file);
+    } else {
+        doCreate(null);
+    }
 };
 
-// ELIMINAR PERSONAJE (ACCIÓN ABIERTA)
 document.getElementById("btnEliminarPJ").onclick = () => {
     if (!personajeActual || !personajes[personajeActual]) return;
-
-    if (confirm(`¿Estás seguro de que quieres eliminar a ${personajeActual} y todo su inventario y baúl? Esta acción es irreversible.`)) {
+    if (confirm(`¿Eliminar a ${personajeActual} y todo su inventario? Esta acción es irreversible.`)) {
         delete personajes[personajeActual];
         personajeActual = null;
         saveData();
@@ -1927,21 +1871,17 @@ document.getElementById("btnEliminarPJ").onclick = () => {
 ============================================================ */
 function renderPersonajeActual() {
     if (!personajeActual) return;
-    
     const pj = personajes[personajeActual];
-    
+
     document.getElementById("pjHeader").style.display = "flex";
     document.getElementById("inventarioGrid").style.display = "grid";
     document.getElementById("inventarioPlaceholder").style.display = "none";
     document.getElementById("panelAddItem").style.display = "block";
-    
     document.getElementById("nombrePJ").textContent = personajeActual;
-    document.getElementById("pjFoto").src = pj.foto || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'; 
-    
-    document.getElementById("baulSlotsInput").value = pj.baul.slots; 
-    
-    updateHealthUI(pj.status); // Actualizar la barra de estado
-    
+    document.getElementById("pjFoto").src = pj.foto || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+    document.getElementById("baulSlotsInput").value = pj.baul.slots;
+
+    updateHealthUI(pj.status);
     renderGrid("inventarioGrid", pj.slots, pj.items, "inv");
     renderGrid("baulGrid", pj.baul.slots, pj.baul.items, "baul");
 }
@@ -1949,48 +1889,35 @@ function renderPersonajeActual() {
 function renderGrid(gridId, totalSlots, items, fromWhere) {
     const grid = document.getElementById(gridId);
     grid.innerHTML = "";
-
-    // Configura el número de columnas para el grid (8 para inventario, 5 para baul)
-    // El media query en CSS ajusta esto a 6 y 4 respectivamente en móvil (<960px).
     grid.style.setProperty("--cols", fromWhere === "inv" ? personajes[personajeActual].slots : 5);
 
-    let slotOccupied = Array(totalSlots).fill(false);
-    let itemsByPos = {}; 
+    const slotOccupied = Array(totalSlots).fill(false);
+    const itemsByPos = {};
 
     items.forEach(it => {
         itemsByPos[it.pos] = it;
         for (let i = 0; i < it.slotsUsados; i++) {
-            if (it.pos + i < totalSlots) { 
-                slotOccupied[it.pos + i] = true;
-            }
+            if (it.pos + i < totalSlots) slotOccupied[it.pos + i] = true;
         }
     });
 
     for (let i = 0; i < totalSlots; i++) {
-        
-        if (slotOccupied[i] && !itemsByPos[i]) {
-            continue;
-        }
+        if (slotOccupied[i] && !itemsByPos[i]) continue;
 
         const slot = document.createElement("div");
         slot.className = "slot";
-
         slot.dataset.index = i;
         slot.dataset.from = fromWhere;
 
         if (itemsByPos[i]) {
             const it = itemsByPos[i];
-            
-            // Usamos gridColumn para que el slot se expanda de forma fluida
-            slot.style.gridColumn = "span " + it.slotsUsados; 
-            
-            // Quitamos el fondo y borde del slot para que solo el item se vea
-            slot.style.background = "transparent"; 
-            slot.style.border = "none"; 
-            
+            slot.style.gridColumn = "span " + it.slotsUsados;
+            slot.style.background = "transparent";
+            slot.style.border = "none";
+
             const itemEl = document.createElement("div");
             itemEl.className = "item";
-            itemEl.draggable = true;
+            itemEl.draggable = !esCelular; // En móvil no usamos drag
             itemEl.dataset.id = it.id;
             itemEl.dataset.from = fromWhere;
 
@@ -2002,15 +1929,11 @@ function renderGrid(gridId, totalSlots, items, fromWhere) {
 
             const label = document.createElement("span");
             label.className = "item-label";
-            
-            // Añadir indicación visual si es un arma con stats
-            if (it.itemType !== 'generic' && Object.keys(it.stats).length > 0) {
-                 label.textContent = it.nombre + ' (' + (it.itemType === 'firearm' ? 'Fuego' : 'Melee') + ')';
-            } else {
-                 label.textContent = it.nombre;
-            }
+            label.textContent = (it.itemType !== 'generic' && Object.keys(it.stats).length > 0)
+                ? `${it.nombre} (${it.itemType === 'firearm' ? 'Fuego' : 'Melee'})`
+                : it.nombre;
             itemEl.appendChild(label);
-            
+
             if (it.cantidad && it.cantidad > 1) {
                 const count = document.createElement("span");
                 count.className = "item-count";
@@ -2018,523 +1941,239 @@ function renderGrid(gridId, totalSlots, items, fromWhere) {
                 itemEl.appendChild(count);
             }
 
-            itemEl.onclick = (e) => e.stopPropagation();
+            // En desktop: clic derecho abre menú contextual
+            // En móvil: long press manejado globalmente arriba
+            if (!esCelular) {
+                itemEl.oncontextmenu = (e) => {
+                    e.preventDefault();
+                    openContextMenu(e.clientX, e.clientY, it, fromWhere);
+                };
+            }
 
-            itemEl.oncontextmenu = (e) => {
-                e.preventDefault();
-                openContextMenu(e.clientX, e.clientY, it, fromWhere);
-            };
-
-            itemEl.addEventListener("dragstart", e => {
-                draggedItem = it;
-                draggedFrom = fromWhere;
-                itemEl.classList.add("dragging");
-            });
-            itemEl.addEventListener("dragend", e => {
-                itemEl.classList.remove("dragging");
-            });
+            // Drag & Drop solo desktop
+            if (!esCelular) {
+                itemEl.addEventListener("dragstart", () => {
+                    draggedItem = it;
+                    draggedFrom = fromWhere;
+                    itemEl.classList.add("dragging");
+                });
+                itemEl.addEventListener("dragend", () => itemEl.classList.remove("dragging"));
+            }
 
             slot.appendChild(itemEl);
-            
-            i += it.slotsUsados - 1; 
+            i += it.slotsUsados - 1;
         }
 
-        slot.addEventListener("dragover", e => {
-            e.preventDefault();
-            // Resaltar solo el slot si hay un ítem siendo arrastrado
-            if (draggedItem) {
-                slot.classList.add('drop-target');
-            }
-        });
-        slot.addEventListener("dragleave", () => {
-             slot.classList.remove('drop-target');
-        });
-        slot.addEventListener("drop", () => {
-            slot.classList.remove('drop-target');
-            dropItem(i, fromWhere);
-        });
+        if (!esCelular) {
+            slot.addEventListener("dragover", (e) => {
+                e.preventDefault();
+                if (draggedItem) slot.classList.add('drop-target');
+            });
+            slot.addEventListener("dragleave", () => slot.classList.remove('drop-target'));
+            slot.addEventListener("drop", () => {
+                slot.classList.remove('drop-target');
+                dropItem(i, fromWhere);
+            });
+        }
 
         grid.appendChild(slot);
     }
 }
 
-
-// ACTUALIZAR BAÚL (ACCIÓN ABIERTA) - Mínimo 2 slots
 document.getElementById("btnActualizarBaul").onclick = () => {
     if (!personajeActual) return;
     const pj = personajes[personajeActual];
-
     const newSlots = parseInt(document.getElementById("baulSlotsInput").value);
-    
-    // CAMBIO: Mínimo 2 slots
+
     if (isNaN(newSlots) || newSlots < 2) {
         alert("El baúl debe tener al menos 2 slots.");
         document.getElementById("baulSlotsInput").value = pj.baul.slots;
         return;
     }
-    
-    let lastPos = pj.baul.items.reduce((max, item) => Math.max(max, item.pos + item.slotsUsados), 0);
 
+    const lastPos = pj.baul.items.reduce((max, item) => Math.max(max, item.pos + item.slotsUsados), 0);
     if (newSlots < lastPos) {
-          alert(`No puedes reducir el espacio del baúl, ya hay ítems ocupando hasta el slot ${lastPos}.`);
-          document.getElementById("baulSlotsInput").value = pj.baul.slots;
-          return;
+        alert(`No puedes reducir el baúl, hay ítems ocupando hasta el slot ${lastPos}.`);
+        document.getElementById("baulSlotsInput").value = pj.baul.slots;
+        return;
     }
-    
+
     pj.baul.slots = newSlots;
     saveData();
-    renderPersonajeActual(); 
+    renderPersonajeActual();
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* ============================================================
-   NEOMUTATION PDA — SNIPPETS PARA AGREGAR AL SCRIPT
-   Copiá cada bloque donde corresponda en tu script existente
-   ============================================================ */
-
-
-/* ------------------------------------------------------------
-   1. BOOT BAR — reemplazá tu función de boot existente
-      o asegurate de que llame a "bootProgressBar" como id
-   ------------------------------------------------------------ */
-function iniciarBootScreen() {
-    const screen   = document.getElementById('pda-boot-screen');
-    const bar      = document.getElementById('bootProgressBar');
-    if (!screen || !bar) return;
-
-    let progress = 0;
-    const interval = setInterval(() => {
-        // Avanza rápido al principio, lento al final (más realista)
-        const step = progress < 70 ? Math.random() * 8 + 4 : Math.random() * 2 + 0.5;
-        progress = Math.min(progress + step, 100);
-        bar.style.width = progress + '%';
-
-        if (progress >= 100) {
-            clearInterval(interval);
-            setTimeout(() => {
-                screen.style.transition = 'opacity 0.6s ease';
-                screen.style.opacity    = '0';
-                setTimeout(() => { screen.style.display = 'none'; }, 600);
-            }, 400);
-        }
-    }, 80);
-}
-
-// Llamala al cargar la página:
-document.addEventListener('DOMContentLoaded', iniciarBootScreen);
-
-
-/* ------------------------------------------------------------
-   2. AUDIO PLAYER CUSTOM para notas
-      Ponelo en la sección donde ya manejás noteAudioUpload
-   ------------------------------------------------------------ */
-(function initNoteAudio() {
-    const uploadInput  = document.getElementById('noteAudioUpload');
-    const wrapper      = document.getElementById('audioPlayerWrapper');
-    const audioEl      = document.getElementById('noteAudioPlayer');
-    const btnPlay      = document.getElementById('audioBtnPlay');
-    const progressFill = document.getElementById('audioProgress');
-    const timeLabel    = document.getElementById('audioTime');
-    const track        = document.querySelector('.audio-track');
-
-    if (!uploadInput || !audioEl) return;
-
-    // Cuando el usuario elige un archivo de audio
-    uploadInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const url = URL.createObjectURL(file);
-        audioEl.src = url;
-        wrapper.style.display = 'block';
-        btnPlay.textContent = '▶';
-        btnPlay.classList.remove('playing');
-        progressFill.style.width = '0%';
-        timeLabel.textContent = '0:00';
-    });
-
-    // Play / Pause
-    btnPlay.addEventListener('click', () => {
-        if (!audioEl.src) return;
-        if (audioEl.paused) {
-            audioEl.play();
-            btnPlay.textContent = '⏸';
-            btnPlay.classList.add('playing');
-        } else {
-            audioEl.pause();
-            btnPlay.textContent = '▶';
-            btnPlay.classList.remove('playing');
-        }
-    });
-
-    // Actualizar barra de progreso
-    audioEl.addEventListener('timeupdate', () => {
-        if (!audioEl.duration) return;
-        const pct = (audioEl.currentTime / audioEl.duration) * 100;
-        progressFill.style.width = pct + '%';
-
-        const m = Math.floor(audioEl.currentTime / 60);
-        const s = Math.floor(audioEl.currentTime % 60).toString().padStart(2, '0');
-        timeLabel.textContent = `${m}:${s}`;
-    });
-
-    // Seek al hacer click en la barra
-    if (track) {
-        track.addEventListener('click', (e) => {
-            if (!audioEl.duration) return;
-            const rect = track.getBoundingClientRect();
-            const pct  = (e.clientX - rect.left) / rect.width;
-            audioEl.currentTime = pct * audioEl.duration;
-        });
-    }
-
-    // Al terminar
-    audioEl.addEventListener('ended', () => {
-        btnPlay.textContent = '▶';
-        btnPlay.classList.remove('playing');
-        progressFill.style.width = '0%';
-    });
-})();
-
-
-/* ------------------------------------------------------------
-   3. MOBILE LONG-PRESS para abrir el Action Sheet en celu
-      Agregá esto donde creás los elementos .item en el grid
-      (o en la función que renderiza el inventario)
-
-      USO: al crear cada .item, llamá:
-        agregarLongPress(elementoItem, datosItem);
-   ------------------------------------------------------------ */
-function agregarLongPress(elemento, itemData) {
-    let timer = null;
-    const DELAY = 500; // ms para considerar "long press"
-
-    // Touch — móvil
-    elemento.addEventListener('touchstart', (e) => {
-        timer = setTimeout(() => {
-            e.preventDefault();
-            abrirPanelMovil(itemData); // tu función existente
-        }, DELAY);
-    }, { passive: false });
-
-    elemento.addEventListener('touchend',   () => clearTimeout(timer));
-    elemento.addEventListener('touchmove',  () => clearTimeout(timer));
-    elemento.addEventListener('touchcancel',() => clearTimeout(timer));
-
-    // Desktop — click derecho (contextmenu)
-    // (esto probablemente ya lo tenés, pero por si acaso)
-    elemento.addEventListener('contextmenu', (e) => {
-        e.preventDefault();
-        const menu = document.getElementById('contextMenu');
-        menu.style.left = e.clientX + 'px';
-        menu.style.top  = e.clientY  + 'px';
-        menu.classList.add('visible');
-        const nameEl = document.getElementById('ctxItemName');
-        if (nameEl && itemData) nameEl.textContent = itemData.nombre || '—';
-    });
-}
-
-// Cerrá el context menu al hacer click en cualquier lado
-document.addEventListener('click', () => {
-    document.getElementById('contextMenu')?.classList.remove('visible');
-});
-
-
-/* ------------------------------------------------------------
-   4. HELPER — abrirPanelMovil
-      Adaptalo a tu estructura de datos si ya tenés una versión
-   ------------------------------------------------------------ */
-function abrirPanelMovil(itemData) {
-    window.itemSeleccionadoGlobal = itemData;
-    const title = document.getElementById('sheetItemTitle');
-    if (title) title.textContent = itemData?.nombre || 'OBJETO';
-    document.getElementById('mobileActionSheet')?.classList.add('active');
-}
-
-function cerrarPanelMovil() {
-    document.getElementById('mobileActionSheet')?.classList.remove('active');
-}
-
-
-/* ------------------------------------------------------------
-   5. STATS MODAL — abrir/cerrar con clase CSS en vez de display
-      Reemplazá tus llamadas a display:flex/none por esto
-   ------------------------------------------------------------ */
-function abrirStatsModal() {
-    document.getElementById('statsModal').classList.add('visible');
-}
-
-function cerrarStatsModal() {
-    document.getElementById('statsModal').classList.remove('visible');
-}
-
-document.getElementById('statsModal')?.addEventListener('click', function(e) {
-    if (e.target === this) cerrarStatsModal();
-});
-
-document.getElementById('btnCloseStats')?.addEventListener('click', cerrarStatsModal);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* ============================================================
-    AGREGAR ÍTEM (Añadido campo Cantidad, TIPO/STATS y Descripción)
+    AGREGAR ÍTEM
 ============================================================ */
 document.getElementById("btnAgregarItem").onclick = () => {
     if (!personajeActual) return;
 
-    const nombre = document.getElementById("itemNombre").value.trim();
-    const slots = parseInt(document.getElementById("itemSlots").value);
-    const cantidad = parseInt(document.getElementById("itemCantidad").value) || 1; 
-    const file = document.getElementById("itemImagen").files[0];
-    const itemType = document.getElementById("itemTypeSelect").value;
-    const description = document.getElementById("itemDescriptionInitial").value.trim(); // NUEVO: Descripción inicial
+    const nombre      = document.getElementById("itemNombre").value.trim();
+    const slots       = parseInt(document.getElementById("itemSlots").value);
+    const cantidad    = parseInt(document.getElementById("itemCantidad").value) || 1;
+    const file        = document.getElementById("itemImagen").files[0];
+    const itemType    = document.getElementById("itemTypeSelect").value;
+    const description = document.getElementById("itemDescriptionInitial").value.trim();
 
     if (!nombre || !slots || slots < 1 || cantidad < 1) return;
 
     const pj = personajes[personajeActual];
     const freeIndex = findSpace(pj.slots, pj.items, slots);
-
     if (freeIndex === -1) {
         document.getElementById("mensajeEspacio").textContent = "No hay espacio suficiente.";
         return;
     }
-    
-    // Lógica de stats iniciales
-    let stats = {};
-    if (itemType === 'firearm') {
-        stats = { 
-            potencia: 10, 
-            velocidad_disparo: 5, 
-            velocidad_recarga: 4, 
-            capacidad: 10 
-        };
-    } else if (itemType === 'melee') {
-        stats = { 
-            potencia: 15, 
-            velocidad_ataque: 5, 
-            alcance: 1, 
-            durabilidad: 100 
-        };
-    }
 
-    const reader = new FileReader();
-    reader.onload = () => {
+    const statsMap = {
+        firearm: { potencia: 10, velocidad_disparo: 5, velocidad_recarga: 4, capacidad: 10 },
+        melee:   { potencia: 15, velocidad_ataque: 5, alcance: 1, durabilidad: 100 }
+    };
+
+    const doAdd = (imgResult) => {
         pj.items.push({
-            id: Date.now(),
-            nombre: nombre,
-            slotsUsados: slots,
-            img: reader.result,
-            pos: freeIndex,
-            cantidad: cantidad,
-            itemType: itemType,
-            stats: stats,
-            description: description // NUEVO: Guardar descripción
+            id: Date.now(), nombre, slotsUsados: slots,
+            img: imgResult, pos: freeIndex, cantidad,
+            itemType, stats: statsMap[itemType] || {}, description
         });
-
         saveData();
         renderPersonajeActual();
-        document.getElementById("sndPickup").play(); 
+        document.getElementById("sndPickup").play();
     };
-    if (file) reader.readAsDataURL(file);
-    else reader.onload({ target: { result: null } });
 
-    document.getElementById("itemNombre").value = "";
-    document.getElementById("itemSlots").value = "";
-    document.getElementById("itemCantidad").value = "1"; 
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => doAdd(e.target.result);
+        reader.readAsDataURL(file);
+    } else {
+        doAdd(null);
+    }
+
+    ["itemNombre", "itemSlots", "itemDescriptionInitial"].forEach(id => document.getElementById(id).value = "");
+    document.getElementById("itemCantidad").value = "1";
     document.getElementById("itemImagen").value = "";
     document.getElementById("mensajeEspacio").textContent = "";
     document.getElementById("itemTypeSelect").value = "generic";
-    document.getElementById("itemDescriptionInitial").value = ""; // Limpiar
 };
 
 function findSpace(total, items, need) {
-    let arr = Array(total).fill(false);
+    const arr = Array(total).fill(false);
     items.forEach(it => {
-        for (let i = 0; i < it.slotsUsados; i++)
-            arr[it.pos + i] = true;
+        for (let i = 0; i < it.slotsUsados; i++) arr[it.pos + i] = true;
     });
-
     for (let i = 0; i <= total - need; i++) {
-        let ok = true;
-        for (let j = 0; j < need; j++)
-            if (arr[i + j]) ok = false;
-        if (ok) return i;
+        if (!arr.slice(i, i + need).some(Boolean)) return i;
     }
     return -1;
 }
 
 /* ============================================================
-    DRAG & DROP Y CONTEXT MENU 
+    DRAG & DROP (DESKTOP)
 ============================================================ */
-
 function dropItem(targetIndex, targetFrom) {
-    if (!draggedItem || !personajeActual) {
-        draggedItem = null;
-        return; 
-    }
-    
-    // Verificamos si se arrastra DENTRO del mismo contenedor (inventario -> inventario / baúl -> baúl)
-    // El movimiento entre contenedores solo se gestiona por el menú contextual
-    if (draggedFrom !== targetFrom) {
-        draggedItem = null;
-        return;
-    }
+    if (!draggedItem || !personajeActual || draggedFrom !== targetFrom) { draggedItem = null; return; }
 
     const pj = personajes[personajeActual];
-    const currentList = targetFrom === "inv" ? pj.items : pj.baul.items;
-    const totalSlots = targetFrom === "inv" ? pj.slots : pj.baul.slots;
+    const currentList  = targetFrom === "inv" ? pj.items : pj.baul.items;
+    const totalSlots   = targetFrom === "inv" ? pj.slots  : pj.baul.slots;
+    const tempList     = currentList.filter(it => it.id !== draggedItem.id);
 
-    // Lógica de dropItem para reposicionamiento interno
-    const tempTargetList = currentList.filter(it => it.id !== draggedItem.id);
-    
     let canPlace = true;
     for (let i = 0; i < draggedItem.slotsUsados; i++) {
-        const checkPos = targetIndex + i;
-        if (checkPos >= totalSlots) {
-             canPlace = false;
-             break;
-        }
-        if (tempTargetList.some(it => it.pos <= checkPos && it.pos + it.slotsUsados > checkPos)) {
-            canPlace = false;
-            break;
+        const pos = targetIndex + i;
+        if (pos >= totalSlots || tempList.some(it => it.pos <= pos && it.pos + it.slotsUsados > pos)) {
+            canPlace = false; break;
         }
     }
 
     if (canPlace) {
-        draggedItem.pos = targetIndex; 
+        draggedItem.pos = targetIndex;
         saveData();
         renderPersonajeActual();
         document.getElementById("sndMove").play();
     } else {
         alert("No hay espacio para soltar el ítem aquí.");
     }
-
     draggedItem = null;
 }
 
-/**
- * Abre el menú contextual (clic derecho / long press).
- */
+/* ============================================================
+    MENÚ CONTEXTUAL (DESKTOP)
+============================================================ */
 function openContextMenu(x, y, item, from) {
     ctxTargetItem = item;
     ctxTargetFrom = from;
 
-    // Actualiza los botones de mover
-    document.getElementById("ctxMoveToBaul").style.display = from === "inv" ? "block" : "none";
-    document.getElementById("ctxMoveToInv").style.display = from === "baul" ? "block" : "none";
-    
-    // NUEVO: Ocultar o mostrar botón de stats
+    document.getElementById("ctxMoveToBaul").style.display = from === "inv"  ? "block" : "none";
+    document.getElementById("ctxMoveToInv").style.display  = from === "baul" ? "block" : "none";
+
     const hasStats = item.itemType !== 'generic' && Object.keys(item.stats).length > 0;
     document.getElementById("ctxViewStats").style.display = hasStats ? "block" : "none";
 
-    // Posiciona el menú cerca del ratón/toque
     ctxMenu.style.left = `${x}px`;
-    ctxMenu.style.top = `${y}px`;
+    ctxMenu.style.top  = `${y}px`;
     ctxMenu.style.display = 'block';
-    document.getElementById("sndPickup").play(); 
+    document.getElementById("sndPickup").play();
 }
 
-// Cierra el menú si se hace clic fuera
 document.addEventListener('click', (e) => {
     if (!ctxMenu.contains(e.target) && !document.getElementById('statsModal').contains(e.target)) {
         ctxMenu.style.display = 'none';
     }
 });
-document.getElementById("ctxClose").onclick = () => {
-    ctxMenu.style.display = 'none';
+
+document.getElementById("ctxClose").onclick       = () => ctxMenu.style.display = 'none';
+document.getElementById("ctxMoveToBaul").onclick  = () => moveItem(ctxTargetItem, "baul");
+document.getElementById("ctxMoveToInv").onclick   = () => moveItem(ctxTargetItem, "inv");
+document.getElementById("ctxDelete").onclick      = () => deleteItem(ctxTargetItem, ctxTargetFrom);
+document.getElementById("ctxViewStats").onclick   = () => openStatsModal(ctxTargetItem);
+
+// Botones del panel móvil — deben existir en el HTML con estos IDs
+const mobileBtnMap = {
+    mobileMoveToBaul: () => { moveItem(ctxTargetItem, "baul"); cerrarPanelMovil(); },
+    mobileMoveToInv:  () => { moveItem(ctxTargetItem, "inv");  cerrarPanelMovil(); },
+    mobileViewStats:  () => { openStatsModal(ctxTargetItem);   cerrarPanelMovil(); },
+    mobileDelete:     () => { deleteItem(ctxTargetItem, ctxTargetFrom); cerrarPanelMovil(); },
+    mobileClose:      () => cerrarPanelMovil()
 };
+Object.entries(mobileBtnMap).forEach(([id, fn]) => {
+    const el = document.getElementById(id);
+    if (el) el.onclick = fn;
+});
 
-// Eventos de botones del menú contextual
-document.getElementById("ctxMoveToBaul").onclick = () => { moveItem(ctxTargetItem, "baul"); };
-document.getElementById("ctxMoveToInv").onclick = () => { moveItem(ctxTargetItem, "inv"); };
-document.getElementById("ctxDelete").onclick = () => { deleteItem(ctxTargetItem, ctxTargetFrom); };
-document.getElementById("ctxViewStats").onclick = () => { openStatsModal(ctxTargetItem); }; // Ahora abre el modal
-
-/**
- * Mueve el ítem a la lista de destino, buscando el primer espacio libre.
- */
+/* ============================================================
+    MOVER / ELIMINAR ÍTEMS
+============================================================ */
 function moveItem(item, toWhere) {
     if (!personajeActual) return;
     const pj = personajes[personajeActual];
-    
-    // --- 1. Determinar la ubicación de origen de forma robusta ---
-    let sourceList, targetList, targetTotalSlots;
-    let fromWhere;
-    
-    let invIndex = pj.items.findIndex(i => i.id === item.id);
-    
-    if (invIndex !== -1) {
-        fromWhere = "inv";
-        sourceList = pj.items;
-    } else {
-        fromWhere = "baul";
-        sourceList = pj.baul.items;
-    }
-    
-    if (fromWhere === toWhere) { 
-        ctxMenu.style.display = 'none';
-        return;
-    }
-    
-    targetList = toWhere === "inv" ? pj.items : pj.baul.items;
-    targetTotalSlots = toWhere === "inv" ? pj.slots : pj.baul.slots;
-    
-    // -----------------------------------------------------------
 
-    // 2. Eliminar de la lista de origen
-    const actualIndex = sourceList.findIndex(i => i.id === item.id);
+    const invIdx = pj.items.findIndex(i => i.id === item.id);
+    const fromWhere   = invIdx !== -1 ? "inv" : "baul";
+    const sourceList  = fromWhere === "inv" ? pj.items : pj.baul.items;
+    const targetList  = toWhere  === "inv" ? pj.items : pj.baul.items;
+    const targetSlots = toWhere  === "inv" ? pj.slots  : pj.baul.slots;
 
-    if (actualIndex !== -1) {
-        sourceList.splice(actualIndex, 1);
-    } else {
-         alert("Error: Ítem no encontrado en la lista de origen.");
-         ctxMenu.style.display = 'none';
-         return;
-    }
+    if (fromWhere === toWhere) { ctxMenu.style.display = 'none'; return; }
 
-    // 3. Buscar espacio en la lista de destino
-    const freeIndex = findSpace(targetTotalSlots, targetList, item.slotsUsados);
+    const srcIdx = sourceList.findIndex(i => i.id === item.id);
+    if (srcIdx === -1) { alert("Error: Ítem no encontrado."); ctxMenu.style.display = 'none'; return; }
 
+    sourceList.splice(srcIdx, 1);
+
+    const freeIndex = findSpace(targetSlots, targetList, item.slotsUsados);
     if (freeIndex !== -1) {
-        // 4. Añadir a la lista de destino con la nueva posición
         item.pos = freeIndex;
         targetList.push(item);
         document.getElementById("sndMove").play();
     } else {
-        // 5. Fallback: Devolver a la lista de origen si no hay espacio
-        const fallbackList = fromWhere === "inv" ? pj.items : pj.baul.items;
-        const fallbackTotalSlots = fromWhere === "inv" ? pj.slots : pj.baul.slots;
-        const fallbackIndex = findSpace(fallbackTotalSlots, fallbackList, item.slotsUsados);
-        
-        item.pos = fallbackIndex !== -1 ? fallbackIndex : 0; 
+        // Devolver al origen
+        const fallbackList  = fromWhere === "inv" ? pj.items : pj.baul.items;
+        const fallbackSlots = fromWhere === "inv" ? pj.slots  : pj.baul.slots;
+        const fallbackIdx   = findSpace(fallbackSlots, fallbackList, item.slotsUsados);
+        item.pos = fallbackIdx !== -1 ? fallbackIdx : 0;
         fallbackList.push(item);
-        alert(`❌ No hay espacio suficiente en ${toWhere === 'inv' ? 'el inventario' : 'el baúl'} para mover este ítem. Fue devuelto a su lugar original.`);
+        alert(`❌ No hay espacio en ${toWhere === 'inv' ? 'el inventario' : 'el baúl'}. Ítem devuelto.`);
     }
 
     saveData();
@@ -2542,19 +2181,16 @@ function moveItem(item, toWhere) {
     ctxMenu.style.display = 'none';
 }
 
-/**
- * Elimina el ítem permanentemente.
- */
 function deleteItem(item, from) {
     if (!personajeActual) return;
-    if (!confirm(`¿Estás seguro de que quieres eliminar "${item.nombre}"?`)) return;
+    if (!confirm(`¿Eliminar "${item.nombre}"?`)) return;
 
-    const pj = personajes[personajeActual];
-    const list = from === "inv" ? pj.items : pj.baul.items; 
+    const pj   = personajes[personajeActual];
+    const list = from === "inv" ? pj.items : pj.baul.items;
+    const idx  = list.findIndex(i => i.id === item.id);
 
-    const itemIndex = list.findIndex(i => i.id === item.id);
-    if (itemIndex !== -1) {
-        list.splice(itemIndex, 1);
+    if (idx !== -1) {
+        list.splice(idx, 1);
         saveData();
         renderPersonajeActual();
         document.getElementById("sndMove").play();
@@ -2563,49 +2199,37 @@ function deleteItem(item, from) {
 }
 
 /* ============================================================
-    NUEVO: LÓGICA DEL MODAL DE STATS
+    MODAL DE STATS
 ============================================================ */
-const statsModal = document.getElementById("statsModal");
-const statsModalTitle = document.getElementById("statsModalTitle");
-const statsModalImage = document.getElementById("statsModalImage");
-const statsInputsContainer = document.getElementById("statsInputsContainer");
+const statsModal            = document.getElementById("statsModal");
+const statsModalTitle       = document.getElementById("statsModalTitle");
+const statsModalImage       = document.getElementById("statsModalImage");
+const statsInputsContainer  = document.getElementById("statsInputsContainer");
 const statsModalDescription = document.getElementById("statsModalDescription");
 
-document.getElementById("btnCloseStats").onclick = () => {
-    statsModal.style.display = 'none';
-    editingItem = null;
-};
-document.getElementById("btnSaveStats").onclick = saveStatsChanges;
+document.getElementById("btnCloseStats").onclick = () => { statsModal.style.display = 'none'; editingItem = null; };
+document.getElementById("btnSaveStats").onclick  = saveStatsChanges;
 
-
-/**
- * Abre y prepara el modal de edición de stats y descripción.
- */
 function openStatsModal(item) {
     ctxMenu.style.display = 'none';
     editingItem = item;
 
     statsModalTitle.textContent = `Mejorar/Ver: ${item.nombre}`;
-    
-    // Imagen
     statsModalImage.src = item.img || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
     statsModalImage.style.display = item.img ? 'block' : 'none';
-
-    // Descripción
     statsModalDescription.value = item.description || "";
 
-    // Stats
     statsInputsContainer.innerHTML = "";
+
     if (Object.keys(item.stats).length > 0) {
         for (const [key, value] of Object.entries(item.stats)) {
             const group = document.createElement("div");
             group.className = "stat-input-group";
-            
+
             const label = document.createElement("label");
-            // Formatea el nombre de la stat (ej: velocidad_disparo -> Velocidad Disparo)
-            label.textContent = key.replace(/_/g, ' ').toUpperCase(); 
+            label.textContent = key.replace(/_/g, ' ').toUpperCase();
             label.htmlFor = `stat-input-${key}`;
-            
+
             const input = document.createElement("input");
             input.type = "number";
             input.id = `stat-input-${key}`;
@@ -2624,31 +2248,17 @@ function openStatsModal(item) {
     statsModal.style.display = 'flex';
 }
 
-/**
- * Guarda los cambios del modal en el ítem actual.
- */
 function saveStatsChanges() {
     if (!editingItem) return;
-
-    // 1. Guardar Descripción
     editingItem.description = statsModalDescription.value.trim();
 
-    // 2. Guardar Stats
-    const inputs = statsInputsContainer.querySelectorAll('input[type="number"]');
-    let statsUpdated = false;
-
-    inputs.forEach(input => {
+    statsInputsContainer.querySelectorAll('input[type="number"]').forEach(input => {
         const key = input.dataset.statKey;
-        const newValue = parseInt(input.value);
-
-        if (!isNaN(newValue) && newValue >= 0) {
-            if (editingItem.stats[key] !== newValue) {
-                editingItem.stats[key] = newValue;
-                statsUpdated = true;
-            }
+        const val = parseInt(input.value);
+        if (!isNaN(val) && val >= 0) {
+            editingItem.stats[key] = val;
         } else {
-            // Manejo de error si el usuario ingresó algo no numérico/negativo
-            alert(`El valor para ${key.toUpperCase().replace(/_/g, ' ')} no es válido y no fue guardado.`);
+            alert(`Valor inválido para ${key.toUpperCase().replace(/_/g, ' ')}.`);
         }
     });
 
@@ -2656,21 +2266,14 @@ function saveStatsChanges() {
     renderPersonajeActual();
     statsModal.style.display = 'none';
     editingItem = null;
-    alert("¡Mejoras y descripción guardadas con éxito!");
+    alert("¡Mejoras y descripción guardadas!");
 }
 
-
 /* ============================================================
-    FUNCIÓN IMPORTAR AL BAÚL 
+    IMPORTAR AL BAÚL
 ============================================================ */
-
-
 function handleBaulImport(event) {
-    if (!personajeActual) {
-        alert("Debes seleccionar un personaje primero para importar al baúl.");
-        document.getElementById("importBaulFile").value = '';
-        return;
-    }
+    if (!personajeActual) { alert("Selecciona un personaje primero."); event.target.value = ''; return; }
 
     const file = event.target.files[0];
     if (!file) return;
@@ -2679,107 +2282,59 @@ function handleBaulImport(event) {
     reader.onload = (e) => {
         try {
             const boughtItems = JSON.parse(e.target.result);
-
-            if (!Array.isArray(boughtItems)) {
-                alert("Error: El archivo de compra no tiene el formato de array esperado.");
-                return;
-            }
+            if (!Array.isArray(boughtItems)) { alert("Formato de archivo inválido."); return; }
 
             const pj = personajes[personajeActual];
-            const baulItems = pj.baul.items;
-            const baulSlots = pj.baul.slots;
-            
-            let newItemsCount = 0;
-            let currentUniqueId = Date.now(); 
+            let added = 0, uid = Date.now();
 
-            boughtItems.forEach(item => {
-                const itemSlots = item.slotsUsados || 1; 
+            for (const item of boughtItems) {
+                const slots = item.slotsUsados || 1;
+                const free  = findSpace(pj.baul.slots, pj.baul.items, slots);
+                if (free === -1) { alert(`Baúl lleno. No se pudo importar: ${item.nombre}`); break; }
 
-                const freeIndex = findSpace(baulSlots, baulItems, itemSlots);
-                
-                if (freeIndex !== -1) {
-                    baulItems.push({
-                        id: currentUniqueId++, 
-                        nombre: item.nombre,
-                        slotsUsados: itemSlots,
-                        img: item.img || '',
-                        pos: freeIndex, 
-                        cantidad: item.cantidad || 1,
-                        itemType: item.itemType || 'generic',
-                        stats: item.stats || {},
-                        description: item.description || '' // Importar descripción
-                    });
-                    newItemsCount++;
-                } else {
-                    alert(`El baúl está lleno. No se pudo importar el ítem: ${item.nombre}`);
-                    return; 
-                }
-            });
-
-            if (newItemsCount > 0) {
-                saveData();
-                renderPersonajeActual();
-                alert(`¡${newItemsCount} ítem(s) importado(s) al baúl!`);
-            } else if (boughtItems.length > 0) {
-                 alert("No se pudo importar ningún ítem. El baúl está lleno o ya se alertó sobre la falta de espacio.");
-            } else {
-                alert("El archivo de compra estaba vacío.");
+                pj.baul.items.push({
+                    id: uid++, nombre: item.nombre, slotsUsados: slots,
+                    img: item.img || '', pos: free,
+                    cantidad: item.cantidad || 1,
+                    itemType: item.itemType || 'generic',
+                    stats: item.stats || {},
+                    description: item.description || ''
+                });
+                added++;
             }
 
-        } catch (error) {
-            alert("Error al leer el archivo. Asegúrate de que sea el JSON de compra válido.");
-            console.error(error);
-        }
+            if (added > 0) { saveData(); renderPersonajeActual(); alert(`¡${added} ítem(s) importado(s) al baúl!`); }
+            else alert("No se importó ningún ítem.");
+
+        } catch { alert("Error al leer el archivo."); }
     };
     reader.readAsText(file);
-    document.getElementById("importBaulFile").value = '';
+    event.target.value = '';
 }
 
 /* ============================================================
-    FUNCIÓN DE CONTROL DE VOLUMEN
+    VOLUMEN
 ============================================================ */
 function toggleVolume() {
     const bgm = document.getElementById("bgm");
     const btn = document.getElementById("btnToggleVolume");
-
-    if (bgm.volume > 0.4) {
-        // Bajar volumen a modo "ambiente suave" (10%)
-        bgm.volume = 0.1; 
-        btn.textContent = '🔈';
-    } else if (bgm.volume === 0.1) {
-        // Subir volumen a modo "normal" (50%)
-        bgm.volume = 0.5; 
-        btn.textContent = '🔉';
-    } else {
-        // Si estaba en 0.5, mutar
-        bgm.volume = 0.0;
-        btn.textContent = '🔇';
-    }
+    if (bgm.volume > 0.4)     { bgm.volume = 0.1; btn.textContent = '🔈'; }
+    else if (bgm.volume > 0)  { bgm.volume = 0.5; btn.textContent = '🔉'; }
+    else                      { bgm.volume = 0.0; btn.textContent = '🔇'; }
 }
-
 document.getElementById("btnToggleVolume").onclick = toggleVolume;
-
 
 /* ============================================================
     INICIALIZACIÓN
 ============================================================ */
-// Inicializar
-renderListaPersonajes(); 
+renderListaPersonajes();
 renderNotasList();
 
-// Establecer volumen inicial (0.5)
 const bgm = document.getElementById("bgm");
 bgm.volume = 0.5;
 document.getElementById("btnToggleVolume").textContent = '🔉';
 
-
-// Habilitar música al primer clic en cualquier parte de la página
-document.onclick = () => {
-    const bgm = document.getElementById("bgm");
-    if (bgm.paused) {
-        bgm.play().catch(e => console.log("Autoplay blocked:", e));
-    }
-};
+document.onclick = () => { if (bgm.paused) bgm.play().catch(() => {}); };
 
 </script>
 
