@@ -1189,53 +1189,6 @@ const GAP_SIZE = 6;  
 
 
 
-// Variable para saber qué ítem estamos tocando
-let itemSeleccionadoGlobal = null;
-
-// Esta función debe ejecutarse cuando detectas el toque largo en el ítem
-function abrirMenuContextual(e, item) {
-    itemSeleccionadoGlobal = item;
-    const menu = document.getElementById('contextMenu');
-    menu.style.display = 'block';
-    
-    // Si es celu, lo centramos (como ya tenías en el CSS)
-    // Si es PC, usamos coordenadas
-    if (window.innerWidth > 900) {
-        menu.style.top = e.pageY + "px";
-        menu.style.left = e.pageX + "px";
-    }
-}
-
-// --- EL FIX PARA QUE LOS BOTONES RESPONDAN ---
-document.addEventListener('touchstart', function(e) {
-    // 1. Detectamos si lo que tocaste es un botón DENTRO del menú de contexto
-    const boton = e.target.closest('.context-button button');
-    
-    if (boton) {
-        // Detenemos cualquier otra acción del navegador
-        e.preventDefault();
-        e.stopPropagation();
-
-        // Ejecutamos la acción según el texto del botón o una clase
-        const accion = boton.innerText.toUpperCase();
-
-        if (accion.includes("STATS")) {
-            abrirModalStats(itemSeleccionadoGlobal);
-        } else if (accion.includes("BAÚL") || accion.includes("BAUL")) {
-            moverAlBaul(itemSeleccionadoGlobal);
-        } else if (accion.includes("ELIMINAR")) {
-            eliminarItem(itemSeleccionadoGlobal);
-        } else if (accion.includes("CANCELAR")) {
-            // No hace nada, solo cierra
-        }
-
-        // Siempre cerramos el menú después de tocar un botón
-        document.getElementById('contextMenu').style.display = 'none';
-    }
-}, { passive: false }); // 'passive: false' permite usar preventDefault
-
-
-
 
 
 
