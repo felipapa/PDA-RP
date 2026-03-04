@@ -5,27 +5,63 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>PDA</title>
 <style>
-/*******************************************************
-/* RESIDENT EVIL UI - NEOMUTATION (SCI-FI EDITION) 
-/*******************************************************/
+/******************************************************************************
+ * NEOMUTATION PDA — OS v5.0.4 // BIOHAZARD PROTOCOL
+ ******************************************************************************/
 
-@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
+/*-----------------------------------------------------------------------------
+ * 1. IMPORTS
+ *----------------------------------------------------------------------------*/
+@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=JetBrains+Mono:wght@100;300;500;800&family=Share+Tech+Mono&display=swap');
 
+/*-----------------------------------------------------------------------------
+ * 2. VARIABLES
+ *----------------------------------------------------------------------------*/
+:root {
+    --cyan:        #00f2ff;
+    --cyan-mid:    rgba(0, 242, 255, 0.5);
+    --cyan-low:    rgba(0, 242, 255, 0.08);
+    --cyan-glow:   rgba(0, 242, 255, 0.25);
+    --orange:      #ff9d00;
+    --orange-glow: rgba(255, 157, 0, 0.35);
+    --red:         #ff0202;
+    --red-glow:    rgba(255, 2, 2, 0.4);
+    --bg:          #020205;
+    --bg-panel:    rgba(3, 8, 16, 0.98);
+    --font-mono:   'JetBrains Mono', monospace;
+    --font-term:   'Share Tech Mono', monospace;
+    --font-body:   'Courier Prime', monospace;
 
-* { 
-    box-sizing: border-box; 
-    margin: 0; 
-    padding: 0; 
+    /* Backward-compat aliases (used in older selectors) */
+    --pda-cyan:       var(--cyan);
+    --pda-cyan-dim:   var(--cyan-mid);
+    --pda-cyan-low:   var(--cyan-low);
+    --pda-orange:     var(--orange);
+    --pda-red:        var(--red);
+    --pda-red-glow:   var(--red-glow);
+    --pda-bg-main:    var(--bg);
+    --pda-bg-panel:   var(--bg-panel);
+}
+
+/*-----------------------------------------------------------------------------
+ * 3. RESET & BODY
+ *----------------------------------------------------------------------------*/
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    -webkit-user-drag: none;
+    outline: none;
 }
 
 body {
-    background: #020205;
-    background-image: 
-        radial-gradient(circle at 50% 50%, #0a1a2f 0%, #000 100%),
-        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
-    background-size: 100% 100%, 100% 4px;
-    color: #00f2ff; 
-    font-family: 'Courier Prime', monospace;
+    background-color: var(--bg);
+    background-image:
+        radial-gradient(ellipse at 50% 0%, rgba(0, 242, 255, 0.04) 0%, transparent 65%),
+        repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0, 0, 0, 0.18) 3px, rgba(0, 0, 0, 0.18) 4px);
+    color: var(--cyan);
+    font-family: var(--font-body);
     display: flex;
     flex-direction: row;
     padding: 20px;
@@ -35,484 +71,495 @@ body {
     overflow-x: hidden;
 }
 
-/* ---------- Panel Personajes (Lateral) - Restaurado y Espaciado ---------- */
+/*-----------------------------------------------------------------------------
+ * 4. SCROLLBAR
+ *----------------------------------------------------------------------------*/
+::-webkit-scrollbar       { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: rgba(0,0,0,0.6); border: 1px solid var(--cyan-low); }
+::-webkit-scrollbar-thumb { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+::-webkit-scrollbar-thumb:hover { background: var(--orange); box-shadow: 0 0 12px var(--orange); }
+
+/*-----------------------------------------------------------------------------
+ * 5. PANEL PERSONAJES
+ *----------------------------------------------------------------------------*/
 #panelPersonajes {
-    width: 280px;
+    width: 290px;
     flex-shrink: 0;
-    background: rgba(10, 15, 25, 0.95);
-    padding: 20px;
-    border: 1px solid #00f2ff;
-    border-right: 4px solid #00f2ff;
+    background: var(--bg-panel);
+    padding: 25px;
+    border: 1px solid var(--cyan);
+    border-right: 5px solid var(--cyan);
     height: fit-content;
-    box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
+    box-shadow: 0 0 40px var(--cyan-glow), inset 0 0 30px rgba(0,0,0,0.4);
+    position: relative;
+    overflow: hidden;
 }
 
-/* Títulos con mayor separación */
-#panelPersonajes h3, .sectionTitle { 
-    margin-top: 25px; 
-    margin-bottom: 12px; 
-    font-size: 14px; 
-    color: #ff9d00; 
-    border-bottom: 1px solid #ff9d00;
+#panelPersonajes::before {
+    content: "USER AUTHENTICATED";
+    position: absolute;
+    top: 6px; right: 10px;
+    font-size: 8px;
+    color: var(--cyan-mid);
+    font-family: var(--font-term);
+    letter-spacing: 1.5px;
+}
+
+#panelPersonajes::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    opacity: 0.6;
+}
+
+/* Section headers */
+#panelPersonajes h3,
+.sectionTitle,
+.sectionTitle3 {
+    margin-top: 28px;
+    margin-bottom: 12px;
+    font-size: 11px;
+    color: var(--orange);
+    border-bottom: 1px solid var(--orange);
+    padding-bottom: 6px;
     display: block;
+    letter-spacing: 3px;
+    text-shadow: 0 0 10px var(--orange-glow);
 }
 
-/* Botones y Inputs con espaciado restaurado */
-#panelPersonajes button, 
-#colNotas button, 
-#panelAddItem select, 
-#panelAddItem input {
+/* Character buttons */
+#panelPersonajes button {
     width: 100%;
-    margin-bottom: 12px; /* Separación para que no sea compacto */
-    padding: 10px;
-    background: rgba(0, 242, 255, 0.05);
-    border: 1px solid #00f2ff;
-    color: #00f2ff; 
+    margin-bottom: 10px;
+    padding: 11px 14px;
+    background: var(--cyan-low);
+    border: 1px solid rgba(0, 242, 255, 0.2);
+    color: var(--cyan);
     cursor: pointer;
-    font-family: inherit;
-    transition: all 0.2s;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+#panelPersonajes button::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 2px;
+    background: var(--cyan);
+    transform: scaleY(0);
+    transition: transform 0.25s ease;
 }
 
 #panelPersonajes button:hover {
-    background: rgba(0, 242, 255, 0.2);
+    background: rgba(0, 242, 255, 0.12);
+    border-color: var(--cyan);
+    padding-left: 20px;
+    box-shadow: inset 0 0 20px rgba(0, 242, 255, 0.08);
+}
+
+#panelPersonajes button:hover::before {
+    transform: scaleY(1);
 }
 
 #listaPersonajes button.selected {
-    background: #ff9d00;
+    background: var(--orange);
     color: #000;
-    box-shadow: 0 0 15px #ff9d00;
+    box-shadow: 0 0 20px var(--orange-glow), inset 0 0 10px rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.4);
+    font-weight: 800;
 }
 
-/* ---------- Área Principal ---------- */
+#listaPersonajes button.selected::before {
+    background: #000;
+    transform: scaleY(1);
+}
+
+/*-----------------------------------------------------------------------------
+ * 6. MAIN AREA & HEADER
+ *----------------------------------------------------------------------------*/
 #mainArea {
     display: flex;
-    flex-direction: column; 
+    flex-direction: column;
     gap: 20px;
     flex-grow: 1;
 }
 
-/* Header Estilo Scan */
 #pjHeader {
     display: flex;
     align-items: center;
-    gap: 20px;
-    background: rgba(0, 242, 255, 0.05);
-    padding: 15px;
-    border: 1px solid rgba(0, 242, 255, 0.4);
-    border-left: 8px solid #00f2ff;
+    gap: 25px;
+    background: rgba(0, 242, 255, 0.04);
+    padding: 20px;
+    border: 1px solid rgba(0, 242, 255, 0.25);
+    border-left: 10px solid var(--cyan);
+    box-shadow: 0 0 30px rgba(0,0,0,0.4), inset 0 0 40px rgba(0, 242, 255, 0.03);
+    position: relative;
 }
 
 #pjFoto {
-    width: 80px;
-    height: 100px;
+    width: 90px;
+    height: 110px;
     object-fit: cover;
-    border: 1px solid #00f2ff;
+    border: 2px solid var(--cyan);
     background: #000;
+    box-shadow: 0 0 20px var(--cyan-glow);
+    filter: brightness(1.1) contrast(1.05);
 }
 
-
-/* Evita que el celular quiera seleccionar texto o abrir menús del sistema */
-.context-menu, .context-button button, .item {
-    -webkit-touch-callout: none !important; /* iOS safari */
-    -webkit-user-select: none !important;    /* Safari */
-    user-select: none !important;           /* Standard */
-    touch-action: none !important;          /* Bloquea scroll mientras tocas el menú */
-}
-
-/* Animación opcional para saber que se está activando */
-.context-button button:active {
-    filter: brightness(1.5);
-    border-left: 10px solid #00f2ff;
-}
-
-/* ---------- Grid Inventario (2 Filas, Expansión Derecha) ---------- */
-.inventoryColumn, #colNotas {
-    background: rgba(5, 10, 20, 0.9);
+/*-----------------------------------------------------------------------------
+ * 7. INVENTORY GRID
+ *----------------------------------------------------------------------------*/
+.inventoryColumn {
+    background: rgba(3, 8, 18, 0.95);
     padding: 20px;
-    border: 1px solid rgba(0, 242, 255, 0.2);
+    border: 1px solid rgba(0, 242, 255, 0.15);
+    position: relative;
+}
+
+.inventoryColumn::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    opacity: 0.4;
 }
 
 .inventarioGrid {
     display: grid;
-    grid-template-rows: repeat(2, 110px); 
-    grid-auto-flow: column; 
-    grid-auto-columns: 140px; 
+    grid-template-rows: repeat(2, 115px);
+    grid-auto-flow: column;
+    grid-auto-columns: 145px;
     gap: 12px;
-    background: #00060a;
-    border: 2px solid #00f2ff;
-    padding: 15px;
-    overflow-x: auto; 
-    min-height: 260px;
-    box-shadow: inset 0 0 30px rgba(0, 242, 255, 0.15);
+    background: #000205;
+    border: 1px solid rgba(0, 242, 255, 0.3);
+    padding: 18px;
+    overflow-x: auto;
+    min-height: 280px;
+    box-shadow:
+        inset 0 0 60px rgba(0, 242, 255, 0.05),
+        inset 0 0 2px rgba(0, 242, 255, 0.1);
 }
 
 .slot {
     width: 100%;
     height: 100%;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(0, 242, 255, 0.1);
+    background: rgba(0, 242, 255, 0.015);
+    border: 1px solid rgba(0, 242, 255, 0.08);
     position: relative;
-    overflow: hidden;
+    transition: border-color 0.2s, background 0.2s;
 }
 
 .slot:hover {
-    border: 1px solid #fff;
-    background: rgba(0, 242, 255, 0.1);
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+    border-color: rgba(255,255,255,0.3);
+    background: rgba(0, 242, 255, 0.04);
+    box-shadow: inset 0 0 15px rgba(255,255,255,0.05);
 }
 
-
-.context-menu {
-    z-index: 999999 !important; /* Por encima de absolutamente todo */
-    pointer-events: auto !important; /* Asegura que reciba los toques */
-}
-
-/* Items que ocupan TODO el espacio del slot */
+/*-----------------------------------------------------------------------------
+ * 8. ITEMS
+ *----------------------------------------------------------------------------*/
 .item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start; /* Alinea desde arriba para dejar espacio al texto */
-    width: 100% !important;
-    height: 100% !important;
-    padding: 8px; /* Espacio interno para que la imagen no toque los bordes */
-    background: linear-gradient(135deg, rgba(0, 50, 70, 0.9) 0%, rgba(0, 10, 20, 1) 100%);
-    border: 1px solid #00f2ff;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 10px;
+    background: linear-gradient(145deg, rgba(0, 35, 55, 0.95) 0%, rgba(0, 5, 12, 1) 100%);
+    border: 1px solid var(--cyan);
     position: absolute;
     top: 0; left: 0;
-    box-sizing: border-box;
+    cursor: pointer;
+    transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.item:hover {
+    box-shadow: 0 0 20px var(--cyan-glow);
+    border-color: #fff;
 }
 
 .item img {
     width: 100%;
-    height: 65px; /* <--- ALTURA FIJA: Todas las imágenes medirán lo mismo de alto */
-    object-fit: contain; /* <--- Mantiene la proporción sin deformar ni estirar */
+    height: 68px;
+    object-fit: contain;
     pointer-events: none;
-    margin-bottom: 4px;
-    
-    /* TIP PROFESIONAL: Si tus imágenes tienen fondo blanco, esto lo hace transparente en modo oscuro */
-    mix-blend-mode: screen; 
-    filter: brightness(1.1) contrast(1.1);
+    margin-bottom: 6px;
+    mix-blend-mode: screen;
+    filter: drop-shadow(0 0 6px var(--cyan));
+    transition: filter 0.2s;
 }
 
-.item span, .item div {
+.item:hover img {
+    filter: drop-shadow(0 0 12px var(--cyan)) brightness(1.2);
+}
+
+.item span {
     font-size: 10px;
-    line-height: 1.1;
     text-align: center;
-    width: 100%;
-    word-wrap: break-word; /* Rompe palabras largas si es necesario */
-    color: #00f2ff;
+    color: var(--cyan);
+    font-family: var(--font-term);
+    letter-spacing: 0.5px;
+    line-height: 1.3;
 }
 
+/*-----------------------------------------------------------------------------
+ * 9. LORE PANEL
+ *----------------------------------------------------------------------------*/
+.contenedor-lore-principal {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 18px;
+    height: 580px;
+    margin-top: 12px;
+}
 
+.lista-lateral-notas {
+    background: var(--bg-panel);
+    border: 1px solid rgba(0, 242, 255, 0.12);
+    padding: 14px;
+    overflow-y: auto;
+}
+
+.visor-datos-nota {
+    background: rgba(0, 4, 10, 0.98);
+    border: 1px solid var(--cyan);
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 50px rgba(0,0,0,0.6), inset 0 0 30px rgba(0, 242, 255, 0.02);
+    position: relative;
+}
+
+.visor-datos-nota::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--cyan), transparent);
+}
+
+/*-----------------------------------------------------------------------------
+ * 10. FILE LABELS / IMPORT BUTTONS
+ *----------------------------------------------------------------------------*/
+.label-file,
+.label-file2,
+.btn-import-baul {
+    display: block;
+    background: rgba(0, 242, 255, 0.07);
+    border: 1px solid rgba(0, 242, 255, 0.4);
+    color: var(--cyan);
+    font-size: 10px;
+    padding: 13px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: bold;
+    margin: 10px 0;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+}
+
+.label-file:hover,
+.label-file2:hover,
+.btn-import-baul:hover {
+    background: var(--cyan);
+    color: #000;
+    box-shadow: 0 0 25px var(--cyan-glow);
+    letter-spacing: 2px;
+}
+
+.label-file3 {
+    display: block;
+    background: rgba(255, 2, 2, 0.06);
+    border: 1px solid rgba(255, 2, 2, 0.4);
+    color: var(--red);
+    padding: 13px;
+    text-align: center;
+    font-size: 10px;
+    font-family: var(--font-mono);
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    margin-bottom: 80px;
+    transition: all 0.2s ease;
+}
+
+.label-file3:hover {
+    background: var(--red);
+    color: #fff;
+    box-shadow: 0 0 25px var(--red-glow);
+}
+
+/*-----------------------------------------------------------------------------
+ * 11. TERMINAL FOOTER
+ *----------------------------------------------------------------------------*/
 .terminal-footer {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: rgba(2, 8, 15, 0.95);
-    border-top: 2px solid #00f2ff;
-    padding: 15px;
-    box-sizing: border-box;
+    bottom: 0; left: 0; width: 100%;
+    background: rgba(1, 6, 14, 0.99);
+    border-top: 2px solid var(--cyan);
+    padding: 14px 40px;
     z-index: 9999;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    box-shadow: 0 -10px 20px rgba(0, 242, 255, 0.2);
-    transition: all 0.3s ease;
+    gap: 12px;
+    box-shadow: 0 -15px 40px rgba(0,0,0,0.95), 0 -1px 0 var(--cyan-glow);
+    transform: translateY(100%);
+    transition: transform 0.45s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.terminal-footer.active {
+    transform: translateY(0);
 }
 
 .panel-header {
     font-size: 10px;
-    color: #00f2ff;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-}
-
-.status-dot {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    background: #555; /* Gris cuando no hay nada */
-    border-radius: 50%;
-    margin-right: 5px;
+    color: var(--cyan-mid);
+    font-family: var(--font-mono);
+    letter-spacing: 3px;
 }
 
 .panel-buttons {
     display: flex;
-    gap: 8px;
-    width: 100%;
+    gap: 15px;
 }
 
 .panel-buttons button {
     flex: 1;
-    background: rgba(0, 242, 255, 0.1);
-    border: 1px solid #00f2ff;
-    color: #fff;
-    padding: 12px 5px;
-    font-size: 11px;
-    font-family: 'Courier New', Courier, monospace;
+    background: rgba(0, 242, 255, 0.04);
+    border: 1px solid rgba(0, 242, 255, 0.3);
+    color: var(--cyan);
+    padding: 14px;
+    font-family: var(--font-mono);
     font-weight: bold;
+    font-size: 11px;
+    letter-spacing: 1.5px;
     cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
 }
 
-/* Cuando seleccionas algo, el panel brilla */
-.terminal-footer.active .status-dot {
-    background: #00f2ff;
-    box-shadow: 0 0 10px #00f2ff;
+.panel-buttons button::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--cyan-low), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
 }
 
-
-/* ---------- Menú de Contexto (REPARADO) ---------- */
-.context-menu {
-    position: fixed; /* Asegura que no se mueva con el scroll */
-    z-index: 10000;
-    display: none; /* Controlado por JS */
-    background: rgba(5, 15, 25, 0.98);
-    border: 2px solid #00f2ff;
-    padding: 10px;
-    min-width: 200px;
-    box-shadow: 0 0 30px rgba(0, 242, 255, 0.5);
+.panel-buttons button:hover {
+    border-color: var(--cyan);
+    color: #fff;
+    box-shadow: 0 0 15px var(--cyan-glow);
 }
 
-.context-button {
-    display: grid;
-    grid-template-columns: 1fr; /* Lista vertical para mejor legibilidad */
-    gap: 8px;
+.panel-buttons button:hover::after {
+    opacity: 1;
 }
 
-.context-button button {
-    background: #000;
-    color: #00f2ff;
-    border: 1px solid #00f2ff;
-    padding: 8px;
-    text-transform: uppercase;
-    cursor: pointer;
+/*-----------------------------------------------------------------------------
+ * 12. STATS MODAL
+ *----------------------------------------------------------------------------*/
+#statsModal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.92);
+    z-index: 2000000;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(8px);
 }
 
-.context-button button:hover {
-    background: #00f2ff;
-    color: #000;
+#statsModalContent {
+    background: #01040a;
+    border: 2px solid var(--cyan);
+    padding: 40px;
+    width: 95%;
+    max-width: 640px;
+    box-shadow: 0 0 80px var(--cyan-glow), 0 0 200px rgba(0, 242, 255, 0.08);
+    position: relative;
+    background-image: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 19px,
+        rgba(0, 242, 255, 0.025) 19px,
+        rgba(0, 242, 255, 0.025) 20px
+    );
 }
 
-/* --- SPLASH SCREEN PDA --- */
+#statsModalContent::before,
+#statsModalContent::after {
+    content: "";
+    position: absolute;
+    width: 12px; height: 12px;
+    border-color: var(--orange);
+    border-style: solid;
+}
+
+#statsModalContent::before {
+    top: -1px; left: -1px;
+    border-width: 2px 0 0 2px;
+}
+
+#statsModalContent::after {
+    bottom: -1px; right: -1px;
+    border-width: 0 2px 2px 0;
+}
+
+/*-----------------------------------------------------------------------------
+ * 13. BOOT SCREEN
+ *----------------------------------------------------------------------------*/
 #pda-boot-screen {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: #020205;
-    z-index: 999999; /* Por encima de TODO */
+    inset: 0;
+    background: #000;
+    z-index: 9999999;
     display: flex;
     justify-content: center;
     align-items: center;
     flex-direction: column;
-    transition: opacity 1s ease-out, visibility 1s;
-}
-
-.boot-content {
-    text-align: center;
-    position: relative;
-    z-index: 10;
 }
 
 .boot-logo {
-    width: 200px; /* Ajusta según tu imagen */
-    filter: drop-shadow(0 0 15px #00f2ff);
-    margin-bottom: 30px;
-    animation: boot-flicker 2s infinite;
+    width: 260px;
+    filter: drop-shadow(0 0 30px var(--cyan)) drop-shadow(0 0 60px rgba(0, 242, 255, 0.3));
+    margin-bottom: 40px;
 }
-
-.boot-text-container {
-    font-family: 'JetBrains Mono', monospace;
-    color: #00f2ff;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-}
-
-.boot-text {
-    margin: 5px 0;
-    opacity: 0;
-    animation: fade-in-text 0.5s forwards;
-}
-
-/* Retrasos para que el texto aparezca línea por línea */
-.boot-text:nth-child(1) { animation-delay: 0.5s; }
-.boot-text:nth-child(2) { animation-delay: 1.2s; }
-.boot-text:nth-child(3) { animation-delay: 1.8s; }
-.boot-text:nth-child(4) { animation-delay: 2.5s; }
 
 .boot-bar {
-    width: 340x;
-    height: 4px;
-    background: rgba(0, 242, 255, 0.1);
-    margin-top: 20px;
-    border: 1px solid #00f2ff;
+    width: 340px;
+    height: 3px;
+    background: rgba(0, 242, 255, 0.06);
+    border: 1px solid rgba(0, 242, 255, 0.3);
     position: relative;
-}
-
-.boot-progress {
-    width: 0%;
-    height: 100%;
-    background: #00f2ff;
-    box-shadow: 0 0 10px #00f2ff;
-    animation: fill-bar 3s forwards ease-in-out;
-    animation-delay: 0.5s;
-}
-
-/* Efecto de desvanecimiento final */
-.pda-ready {
-    opacity: 0;
-    visibility: hidden;
-}
-
-/* ANIMACIONES */
-@keyframes boot-flicker {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.7; }
-    52% { opacity: 1; }
-}
-
-@keyframes fade-in-text {
-    from { opacity: 0; transform: translateY(5px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fill-bar {
-    0% { width: 0%; }
-    100% { width: 100%; }
-}
-
-.scanline-boot {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    background: linear-gradient(to bottom, rgba(0,242,255,0) 50%, rgba(0,242,255,0.05) 50%);
-    background-size: 100% 4px;
-    pointer-events: none;
-}
-
-
-/* Contenedor principal: Lista a la izquierda, Visor a la derecha */
-.contenedor-lore-principal {
-    display: grid;
-    grid-template-columns: 500px 4fr;
-    gap: 15px;
-    height: 500px; /* Un poco más de altura para que quepa todo bien */
-    margin-top: 10px;
-}
-
-/* LADO IZQUIERDO: Lista de registros */
-.lista-lateral-notas {
-    background: rgba(0, 242, 255, 0.05);
-    border: 1px solid rgba(0, 242, 255, 0.2);
-    padding: 10px;
-    overflow-y: auto;
-}
-
-/* LADO DERECHO: El Visor (Panel de Prey) */
-.visor-datos-nota {
-    display: flex;
-    flex-direction: column;
-    background: rgba(0, 10, 20, 0.9);
-    border: 2px solid #00f2ff;
-    box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
-    padding: 15px;
-}
-
-
-/* ============================================================
-   ESTILO PARA IMPORTAR COMPRA AL BAÚL (LORE-TECH)
-============================================================ */
-
-/* Contenedor del botón de importación */
-.import-baul-container {
-    margin: 15px 0;
-    padding: 10px;
-    background: rgba(255, 157, 0, 0.05); /* Tinte ámbar sutil */
-    border-left: 3px solid #ff9d00;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.import-baul-title {
-    font-size: 11px;
-    color: #ff9d00;
-    font-weight: bold;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-}
-
-/* El Label que actúa como botón estético */
-.btn-import-baul {
-    display: inline-block;
-    background: #001a2d;
-    color: #00f2ff;
-    border: 1px solid #00f2ff;
-    padding: 8px 12px;
-    font-size: 10px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    box-shadow: 0 0 5px rgba(0, 242, 255, 0.2);
-}
-
-.btn-import-baul:hover {
-    background: #00f2ff;
-    color: #000;
-    box-shadow: 0 0 15px #00f2ff;
-}
-
-/* Ocultar el input nativo de archivo */
-#importBaulFile {
-    display: none;
-}
-
-/* ============================================================
-   RE-AJUSTE MULTIMEDIA (IMAGEN + AUDIO VERTICAL)
-============================================================ */
-
-/* Esto asegura que el audio rellene el espacio bajo la imagen */
-.zona-multimedia-vertical {
-    width: 180px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    align-items: stretch; /* Estira el audio para llenar el ancho */
-}
-
-.audio-container {
-    background: #000;
-    border: 1px solid rgba(0, 242, 255, 0.4);
-    padding: 10px 5px;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-#noteAudioPlayer {
-    width: 100%;
-    height: 35px;
-    filter: invert(100%) hue-rotate(180deg) brightness(1.2) contrast(1.1);
-}
-
-
-/* El cuerpo que divide Multimedia (izq) y Texto (der) */
-.cuerpo-nota-integrado {
-    display: flex;
-    gap: 15px;
-    flex-grow: 1;
-    margin-top: 10px;
     overflow: hidden;
 }
 
-/* COLUMNA MULTIMEDIA (La que querías arreglar) */
+.boot-progress {
+    height: 100%;
+    width: 0%;
+    background: var(--cyan);
+    box-shadow: 0 0 15px var(--cyan), 0 0 30px var(--cyan-glow);
+    transition: width 0.1s linear;
+}
+
+/*-----------------------------------------------------------------------------
+ * 14. MULTIMEDIA
+ *----------------------------------------------------------------------------*/
 .zona-multimedia-vertical {
-    width: 180px; /* Ancho fijo para el bloque de imagen/audio */
+    width: 200px;
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -520,631 +567,860 @@ body {
 }
 
 .ImagenNota {
-    width: 100% !important;
-    height: 180px !important;
+    width: 100%;
+    height: 200px;
     object-fit: cover;
-    border: 1px solid #00f2ff;
+    border: 1px solid var(--cyan);
     background: #000;
+    box-shadow: 0 0 20px var(--cyan-glow);
 }
 
-/* Contenedor del reproductor de audio */
-.audio-container {
+#noteAudioPlayer {
+    width: 100%;
+    height: 32px;
+    filter: invert(100%) hue-rotate(180deg) brightness(1.5);
+}
+
+/*-----------------------------------------------------------------------------
+ * 15. NOTE CONTENT TEXTAREA
+ *----------------------------------------------------------------------------*/
+#noteContent {
+    background: rgba(0, 4, 8, 1);
+    border: 1px solid rgba(0, 242, 255, 0.3);
+    color: var(--cyan);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.7;
+    text-transform: none;
+    padding: 20px;
+    resize: none;
+    transition: border-color 0.2s;
+}
+
+#noteContent:focus {
+    border-color: var(--cyan);
+    box-shadow: 0 0 15px rgba(0, 242, 255, 0.1);
+}
+
+/*-----------------------------------------------------------------------------
+ * 16. UTILITIES
+ *----------------------------------------------------------------------------*/
+.pda-text-glitch  { font-weight: 800; color: var(--orange); text-shadow: 0 0 8px var(--orange-glow); }
+.pda-border-blink { animation: flicker 2s infinite; }
+.pda-data-row     { display: flex; justify-content: space-between; border-bottom: 1px solid var(--cyan-low); padding: 5px 0; font-size: 10px; letter-spacing: 0.5px; }
+
+/*-----------------------------------------------------------------------------
+ * 17. ANIMATIONS
+ *----------------------------------------------------------------------------*/
+@keyframes scan {
+    0%   { transform: translateY(-100%); }
+    100% { transform: translateY(1000%); }
+}
+
+@keyframes flicker {
+    0%, 95%, 100% { opacity: 1; }
+    96%            { opacity: 0.4; }
+    97%            { opacity: 1; }
+    98%            { opacity: 0.2; }
+}
+
+@keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 10px var(--cyan-glow); }
+    50%       { box-shadow: 0 0 30px var(--cyan-glow), 0 0 60px rgba(0, 242, 255, 0.1); }
+}
+
+@keyframes slide-up {
+    from { transform: translateY(10px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+}
+
+/*-----------------------------------------------------------------------------
+ * 18. RESPONSIVE
+ *----------------------------------------------------------------------------*/
+@media (max-width: 900px) {
+    body {
+        flex-direction: column;
+        padding: 10px;
+    }
+
+    #panelPersonajes {
+        width: 100%;
+        order: 2;
+        border-right: 1px solid var(--cyan);
+        border-top: 4px solid var(--cyan);
+    }
+
+    #mainArea {
+        width: 100%;
+        order: 1;
+    }
+
+    .inventarioGrid {
+        grid-template-rows: auto;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        grid-auto-flow: row;
+        max-height: 480px;
+    }
+
+    .contenedor-lore-principal {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+
+    .terminal-footer {
+        padding: 16px 20px;
+    }
+
+    .panel-buttons {
+        gap: 8px;
+    }
+
+    .panel-buttons button {
+        padding: 12px 6px;
+        font-size: 10px;
+    }
+
+    #pjHeader {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+
+/*-----------------------------------------------------------------------------
+ * NEOMUTATION PDA — ADDENDUM CSS
+ * Context menu · Stats modal · Mobile sheet · Inputs · Misc
+ *----------------------------------------------------------------------------*/
+
+/*-----------------------------------------------------------------------------
+ * INPUTS & SELECTS (UNIFIED TERMINAL STYLE)
+ *----------------------------------------------------------------------------*/
+input[type="text"],
+input[type="number"],
+textarea,
+select {
+    width: 100%;
+    background: rgba(0, 4, 10, 0.9);
+    border: 1px solid rgba(0, 242, 255, 0.25);
+    color: var(--cyan);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 10px 12px;
+    margin-top: 4px;
+    outline: none;
+    text-transform: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+input[type="text"]::placeholder,
+input[type="number"]::placeholder,
+textarea::placeholder {
+    color: rgba(0, 242, 255, 0.2);
+    letter-spacing: 1px;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+textarea:focus,
+select:focus {
+    border-color: var(--cyan);
+    box-shadow: 0 0 12px rgba(0, 242, 255, 0.12);
+}
+
+select option {
+    background: #01060e;
+    color: var(--cyan);
+}
+
+textarea {
+    resize: vertical;
+    min-height: 80px;
+    line-height: 1.6;
+}
+
+/* Inputs ocultos (file pickers) */
+input[type="file"] {
+    display: none;
+}
+
+/*-----------------------------------------------------------------------------
+ * CONTEXT MENU (desktop right-click)
+ *----------------------------------------------------------------------------*/
+.context-menu {
+    position: fixed;
+    z-index: 500000;
+    display: none; /* JS añade class "visible" */
+    flex-direction: column;
+    min-width: 220px;
+    background: rgba(1, 6, 16, 0.98);
+    border: 1px solid var(--cyan);
+    border-left: 3px solid var(--cyan);
+    box-shadow:
+        0 0 40px rgba(0, 0, 0, 0.8),
+        0 0 20px rgba(0, 242, 255, 0.12);
+    backdrop-filter: blur(8px);
+    overflow: hidden;
+    animation: ctx-appear 0.15s ease;
+}
+
+.context-menu.visible {
+    display: flex;
+}
+
+@keyframes ctx-appear {
+    from { opacity: 0; transform: scale(0.96) translateY(-4px); }
+    to   { opacity: 1; transform: scale(1)    translateY(0);    }
+}
+
+.context-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(0, 242, 255, 0.12);
+    background: rgba(0, 242, 255, 0.04);
+}
+
+.context-header span:first-child {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: #fff;
+    letter-spacing: 1px;
+    font-weight: 800;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ctx-tag {
+    font-size: 8px;
+    color: var(--orange);
+    letter-spacing: 2px;
+    border: 1px solid var(--orange);
+    padding: 2px 5px;
+}
+
+.context-button {
     display: flex;
     flex-direction: column;
-    gap: 5px;
-    background: rgba(0, 242, 255, 0.05);
-    padding: 8px;
-    border: 1px solid rgba(0, 242, 255, 0.3);
+    padding: 6px;
+    gap: 4px;
 }
 
+.context-button button {
+    width: 100%;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--cyan);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 10px 14px;
+    text-align: left;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: background 0.15s, border-color 0.15s, padding-left 0.15s;
+    position: relative;
+}
+
+.context-button button::before {
+    content: "▶";
+    position: absolute;
+    left: 6px;
+    opacity: 0;
+    font-size: 8px;
+    transition: opacity 0.15s;
+    color: var(--cyan);
+}
+
+.context-button button:hover {
+    background: rgba(0, 242, 255, 0.07);
+    border-color: rgba(0, 242, 255, 0.2);
+    padding-left: 24px;
+}
+
+.context-button button:hover::before {
+    opacity: 0.6;
+}
+
+/*-----------------------------------------------------------------------------
+ * STATS MODAL — ya tenés base en style.css, acá sólo los internos
+ *----------------------------------------------------------------------------*/
+#statsModal {
+    display: none; /* JS controla esto */
+}
+
+#statsModal.visible {
+    display: flex;
+}
+
+#statsModalContent h3 {
+    color: var(--cyan);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 3px;
+    border: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* Inputs de stats generados por JS */
+#statsInputsContainer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+#statsInputsContainer label {
+    font-size: 9px;
+    color: var(--orange);
+    letter-spacing: 2px;
+    display: block;
+    margin-bottom: 3px;
+}
+
+#statsInputsContainer input {
+    margin: 0;
+}
+
+#statsModalImage {
+    max-height: 120px;
+    max-width: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 0 12px var(--cyan));
+}
+
+/*-----------------------------------------------------------------------------
+ * MOBILE ACTION SHEET
+ *----------------------------------------------------------------------------*/
 .mobile-sheet {
+    display: none; /* JS añade class "active" */
     position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
+    inset: 0;
     z-index: 1000000;
-    visibility: hidden;
-    pointer-events: none;
 }
 
 .mobile-sheet.active {
-    visibility: visible;
-    pointer-events: auto;
+    display: block;
 }
 
 .sheet-overlay {
     position: absolute;
-    width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.8);
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
     backdrop-filter: blur(4px);
 }
 
 .sheet-content {
     position: absolute;
-    bottom: -100%;
-    left: 0; width: 100%;
-    background: #050a14;
-    border-top: 2px solid #00f2ff;
-    border-radius: 20px 20px 0 0;
-    padding: 30px 20px;
-    transition: bottom 0.4s ease;
-    box-shadow: 0 -10px 40px rgba(0, 242, 255, 0.2);
-    box-sizing: border-box;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(1, 6, 14, 0.99);
+    border-top: 2px solid var(--cyan);
+    border-radius: 0;
+    padding: 20px 20px 36px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 -20px 60px rgba(0, 242, 255, 0.1);
+    animation: sheet-rise 0.35s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
-.mobile-sheet.active .sheet-content { bottom: 0; }
+@keyframes sheet-rise {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+}
 
 .sheet-handle {
-    width: 50px; height: 4px;
-    background: #00f2ff;
-    border-radius: 10px;
-    margin: -15px auto 20px;
-    opacity: 0.3;
+    width: 36px;
+    height: 3px;
+    background: rgba(0, 242, 255, 0.3);
+    border-radius: 2px;
+    margin: 0 auto 12px;
 }
 
 .sheet-content button {
-    display: block;
     width: 100%;
-    padding: 18px;
-    margin-bottom: 12px;
-    background: rgba(0, 242, 255, 0.1);
-    border: 1px solid #00f2ff;
-    color: #00f2ff;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 14px;
-    font-weight: bold;
-    text-transform: uppercase;
-}
-
-.btn-cancelar {
-    background: transparent !important;
-    border: none !important;
-    color: #ff0202 !important;
-    margin-top: 10px;
-}
-
-.audio-label {
-    font-size: 10px;
-    color: #ff9d00;
-    letter-spacing: 1px;
-    font-weight: bold;
-}
-
-#noteAudioPlayer {
-    width: 100%;
-    height: 30px;
-    outline: none;
-    /* Filtro para que el reproductor gris de Chrome se vea Sci-Fi */
-    filter: invert(100%) hue-rotate(180deg) brightness(1.5);
-}
-
-/* Estilo para los botones de subir archivos (Labels) */
-.label-file {
-    display: block;
-    background: rgba(0, 242, 255, 0.1);
-    border: 1px solid #00f2ff;
-    color: #00f2ff;
-    font-size: 10px;
-    padding: 8px;
-    text-align: center;
+    background: rgba(0, 242, 255, 0.05);
+    border: 1px solid rgba(0, 242, 255, 0.2);
+    color: var(--cyan);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 15px;
     cursor: pointer;
-    transition: 0.2s;
+    letter-spacing: 1.5px;
+    transition: background 0.2s, border-color 0.2s;
 }
 
-/* Clase que se activa cuando el panel está listo */
-.terminal-footer.active {
-    background: rgba(0, 20, 30, 0.98);
-    border-top: 2px solid #00f2ff;
-    box-shadow: 0 -10px 30px rgba(0, 242, 255, 0.4);
+.sheet-content button:hover,
+.sheet-content button:active {
+    background: rgba(0, 242, 255, 0.12);
+    border-color: var(--cyan);
 }
 
-/* Para que los botones se sientan que se pueden tocar */
-.panel-buttons button:active {
-    background: #00f2ff;
-    color: #000;
+.sheet-content .btn-cancelar {
+    background: transparent;
+    border-color: rgba(0, 242, 255, 0.1);
+    color: rgba(0, 242, 255, 0.35);
+    letter-spacing: 3px;
 }
 
-
-.label-file:hover {
-    background: #00f2ff;
-    color: #000;
+/*-----------------------------------------------------------------------------
+ * BAÚL & LORE MISC
+ *----------------------------------------------------------------------------*/
+.import-baul-container {
+    margin-bottom: 14px;
 }
 
-/* Ocultar los inputs nativos feos */
-input[type="file"] {
-    display: none;
+.colBaul h2,
+#colNotas h2,
+#colInventario h2,
+#colBaul h2 {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 4px;
+    color: var(--cyan);
+    border-bottom: 1px solid rgba(0, 242, 255, 0.15);
+    padding-bottom: 10px;
+    margin-bottom: 14px;
 }
 
-/* TEXTAREA (El contenido de la nota) */
-#noteContent {
-    flex-grow: 1;
-    background: rgba(0, 242, 255, 0.02) !important;
-    border: 1px solid rgba(0, 242, 255, 0.1) !important;
-    color: #00f2ff !important;
-    font-size: 16px !important;
-    padding: 10px !important;
-    resize: none;
-    outline: none;
-    text-transform: none;
+.botones-lore-footer button {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 1.5px;
 }
 
+/*-----------------------------------------------------------------------------
+ * INFOROW (labels de admin panel)
+ *----------------------------------------------------------------------------*/
+.infoRow {
+    font-family: var(--font-term);
+    font-size: 10px;
+    color: rgba(0, 242, 255, 0.5);
+    letter-spacing: 2px;
+    margin-top: 12px;
+    margin-bottom: 2px;
+}
 
-/* Footer de botones */
-.botones-lore-footer {
+/*-----------------------------------------------------------------------------
+ * CUERPO NOTA — layout interno del visor
+ *----------------------------------------------------------------------------*/
+.cuerpo-nota-integrado {
     display: flex;
-    gap: 10px;
-    margin-top: 80px;
+    gap: 16px;
+    flex: 1;
+    margin-top: 14px;
+    overflow: hidden;
 }
 
-/* Media Query: En celular se pone uno arriba de otro */
-@media (max-width: 900px) {
-    .contenedor-lore-principal {
-        grid-template-columns: 1fr;
-        height: auto;
-    }
-    .cuerpo-nota-integrado {
-        flex-direction: column;
-    }
-    .zona-imagen { width: 100%; }
-    .ImagenNota { width: 100% !important; height: 200px !important; }
-}
-/* ---------- Notas (Archivos de Umbrella) ---------- */
-#noteContent {
-    background: rgba(0, 10, 15, 0.9) !important;
-    color: #00f2ff !important;
-    border: 1px solid rgba(0, 242, 255, 0.3) !important;
-    font-size: 15px !important;
-    padding: 200px !important;
+.zona-imagen {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
-/* ---------- Modales (Stats / Mejorar) ---------- */
-#statsModal {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0,0,0,0.85);
-    z-index: 99999; 
-    display: none;
-    justify-content: center;
+.controles-carga {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.controles-carga .label-file {
+    margin: 0;
+    font-size: 10px;
+    padding: 10px;
+}
+
+/*-----------------------------------------------------------------------------
+ * PANEL ADD ITEM — select y botones coherentes
+ *----------------------------------------------------------------------------*/
+#panelAddItem h3 {
+    color: var(--orange);
+    font-size: 11px;
+    letter-spacing: 2px;
+    border: none;
+    margin-bottom: 16px;
+}
+
+#panelAddItem select {
+    color: var(--cyan);
+    border-color: rgba(0, 242, 255, 0.2);
+}
+
+/*-----------------------------------------------------------------------------
+ * SCANLINE overlay (boot screen)
+ *----------------------------------------------------------------------------*/
+.scanline-boot {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.25) 2px,
+        rgba(0, 0, 0, 0.25) 4px
+    );
+    pointer-events: none;
+}
+
+.boot-content {
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    
-    backdrop-filter: blur(5px);
+    gap: 30px;
+    z-index: 1;
 }
 
-#statsModalContent {
-    background: #02050a;
-    border: 2px solid #00f2ff;
-    padding: 30px;
-    width: 90%;
-    max-width: 500px;
-    box-shadow: 0 0 50px rgba(0, 242, 255, 0.3);
+.boot-text-container {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-start;
+    min-width: 340px;
 }
 
-/* ---------- MEDIA QUERY (CELULAR) ---------- */
-/* ============================================================
-   PROTOCOLO DE ADAPTACIÓN PARA DISPOSITIVOS MÓVILES (PDA)
-   ============================================================ */
-
-/* Ajuste del Menú de Contexto para Celulares */
-@media (max-width: 900px) {
-    .context-menu {
-        position: fixed !important;
-        top: 50% !important;
-        left: 50% !important;
-        transform: translate(-50%, -50%) !important; /* Lo centra en pantalla */
-        width: 80% !important;
-        max-width: 300px;
-        min-width: unset !important;
-        background: rgba(5, 10, 20, 0.98);
-        border: 3px solid #00f2ff;
-        box-shadow: 0 0 50px rgba(0, 242, 255, 0.6);
-    }
-
-    .context-button button {
-        padding: 15px !important; /* Botones más grandes para el dedo */
-        font-size: 14px !important;
-        margin-bottom: 5px;
-    }
-
-    /* Corregimos ese padding de 200px de las notas que rompe todo en celu */
-    #noteContent {
-        padding: 20px !important; 
-    }
+.boot-text {
+    font-family: var(--font-term);
+    font-size: 12px;
+    color: var(--cyan);
+    letter-spacing: 1.5px;
+    opacity: 0;
+    animation: boot-line 0.3s ease forwards;
 }
 
-@media (max-width: 1024px) {
-    /* Ajuste intermedio para tablets o pantallas pequeñas */
-    .contenedor-lore-principal {
-        grid-template-columns: 1fr; /* Apilamos la lista de notas arriba del visor */
-        height: auto;
-    }
-    
-    .lista-lateral-notas {
-        max-height: 200px; /* Limitamos la altura de la lista para ver el contenido abajo */
-    }
+.boot-text:nth-child(1) { animation-delay: 0.3s; }
+.boot-text:nth-child(2) { animation-delay: 0.8s; }
+.boot-text:nth-child(3) { animation-delay: 1.2s; }
+.boot-text:nth-child(4) { animation-delay: 1.6s; }
+
+@keyframes boot-line {
+    from { opacity: 0; transform: translateX(-8px); }
+    to   { opacity: 1; transform: translateX(0); }
 }
 
-@media (max-width: 768px) {
-    body {
-        flex-direction: column;
-        padding: 10px;
-        gap: 15px;
-    }
+/* EOF — ADDENDUM */
 
-    /* REORDENAMIENTO: Primero el Personaje, luego el Inventario, al final el Admin */
-    #mainArea { order: 1; width: 100%; }
-    #panelPersonajes { order: 2; width: 100%; border-right: 1px solid #00f2ff; border-top: 4px solid #00f2ff; }
-
-    /* --- HEADER Y FOTO --- */
-    #pjHeader {
-        flex-direction: column;
-        text-align: center;
-        gap: 10px;
-    }
-
-    #pjFoto {
-        width: 100px;
-        height: 125px;
-    }
-
-    /* --- INVENTARIO (Vertical y cómodo) --- */
-    .inventarioGrid {
-        grid-template-rows: auto;
-        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); 
-        grid-auto-flow: row;
-        overflow-x: hidden;
-        height: auto;
-        max-height: 500px; /* Para que no sea infinito */
-        overflow-y: auto;
-    }
-
-    .slot {
-        height: 110px;
-    }
-
-    /* --- SECCIÓN DE NOTAS (LORE) --- */
-    .cuerpo-nota-integrado {
-        flex-direction: column; /* Imagen arriba, texto abajo */
-        align-items: center;
-    }
-
-    .zona-multimedia-vertical {
-        width: 100%; /* La imagen de la nota ocupa todo el ancho */
-        max-width: 300px;
-    }
-
-    .ImagenNota {
-        height: 200px !important;
-    }
-
-    #noteContent {
-        padding: 15px !important; /* Corregimos el padding de 200px que tenías, en móvil es demasiado */
-        min-height: 250px;
-    }
-
-    /* --- BOTONES Y LABELS (Touch Friendly) --- */
-    .label-file, .label-file2, .label-file3, .btn-import-baul {
-        padding: 15px; /* Más grandes para el dedo */
-        font-size: 11px;
-    }
-
-    .botones-lore-footer {
-        flex-direction: column;
-        margin-top: 20px;
-    }
-
-    /* --- BOOT SCREEN (Ajuste de texto) --- */
-    .boot-text-container {
-        font-size: 10px;
-        padding: 0 20px;
-    }
-
-    .boot-bar {
-        width: 80%;
-    }
-}
-
-@media (max-width: 480px) {
-    /* Pantallas muy pequeñas (celulares viejos) */
-    .inventarioGrid {
-        grid-template-columns: repeat(2, 1fr); /* Solo 2 columnas para que no se vea minúsculo */
-    }
-    
-    #pjHeader h2 {
-        font-size: 18px;
-    }
-
-    .sectionTitle {
-        font-size: 12px;
-    }
-}
-.label-file2{
-    display: block;
-    background: rgba(0, 242, 255, 0.1);
-    border: 1px solid #00f2ff;
-    color: #00f2ff;
-    font-size: 10px;
-    padding: 8px;
-    text-align: center;
-    cursor: pointer;
-    transition: 0.2s;
-    margin-top: 10px;
-    margin-bottom: 10px;
-}
-
-
-.label-file3{
-    display: block;
-    background: rgba(0, 242, 255, 0.1);
-    border: 1px solid #00f2ff;
-    color: #ff0202;
-    font-size: 10px;
-    text-align: center;
-    cursor: pointer;
-    transition: 0.2s;
-    margin-bottom: 50px;
-}
-
-.sectionTitle3{
-    margin-bottom: 10px;
-}
-
-/* Estilo para etiquetas informativas */
-.infoRow { margin-top: 10px; color: #ff9d00; font-size: 11px; }
+/* EOF — NEOMUTATION PDA OS */
 </style>
 
 </head>
 <body>
 
-<div id="panelPersonajes">
-    <div id="pda-boot-screen">
+<!-- ============================================================
+     NEOMUTATION PDA — BODY
+     Context menu (desktop, right-click) + mobile action sheet
+     ============================================================ -->
+
+<!-- ══════════════════════════════════════════════════════════
+     BOOT SCREEN (fullscreen, dismissed by JS)
+     ══════════════════════════════════════════════════════════ -->
+<div id="pda-boot-screen">
     <div class="boot-content">
         <img src="descargar (1).png" alt="NEOMUTATION LOGO" class="boot-logo">
-        
         <div class="boot-text-container">
-            <p class="boot-text">NEOMUTATION OS v4.2.1 - INICIALIZANDO...</p>
-            <p class="boot-text">[OK] BIO-SCANNER CARGADO/p>
-            <p class="boot-text">[OK] ENCRIPTACION DEL INVENTARIO ACTIVADA</p>
-            <p class="boot-text">[WAIT] ESTABILIZANDO LINK NEURONAL.</p>
-            <div class="boot-bar">
-                <div class="boot-progress"></div>
-            </div>
+            <p class="boot-text">NEOMUTATION OS v5.0.4 — INICIALIZANDO...</p>
+            <p class="boot-text">[OK] BIO-SCANNER CARGADO</p>
+            <p class="boot-text">[OK] ENCRIPTACIÓN DEL INVENTARIO ACTIVADA</p>
+            <p class="boot-text">[WAIT] ESTABILIZANDO LINK NEURONAL...</p>
+            <div class="boot-bar"><div class="boot-progress"></div></div>
         </div>
     </div>
     <div class="scanline-boot"></div>
 </div>
 
+<!-- ══════════════════════════════════════════════════════════
+     PANEL PERSONAJES (sidebar izquierdo)
+     ══════════════════════════════════════════════════════════ -->
+<div id="panelPersonajes">
+
     <h3>Personajes</h3>
     <div id="listaPersonajes"></div>
 
-    <div class="sectionTitle">Agregar personaje</div>
-    <input type="text" id="nuevoNombre" class="label-file" placeholder="Nombre" />
-    <input type="number" id="nuevoSlots" class="label-file2" placeholder="Slots (ej: 6)" />
-    
-    <label class="sectionTitle3">Foto del personaje (opcional)</label>
+    <div class="sectionTitle">Nuevo Personaje</div>
 
-    <!-- BOTÓN VISUAL QUE DISPARA EL INPUT -->
-    <label for="nuevaFoto" class="label-file3" style="display:block; cursor:pointer;">
-        📷 Elegir imagen
-    </label>
+    <input type="text"   id="nuevoNombre" class="label-file"  placeholder="Nombre" />
+    <input type="number" id="nuevoSlots"  class="label-file2" placeholder="Slots (ej: 6)" />
 
-    <!-- INPUT REAL (OCULTO POR TU CSS GLOBAL) -->
-    <input type="file" id="nuevaFoto" accept="image/*">
+    <label for="nuevaFoto" class="label-file3">📷 Elegir imagen</label>
+    <input type="file"   id="nuevaFoto" accept="image/*">
 
     <button id="btnCrearPJ">Crear personaje</button>
 
-    <div class="sectionTitle">Acciones de Inventario</div>
-    <button id="btnEliminarPJ" style="background: #a44; border-color: #c66;" disabled>
-        Eliminar personaje seleccionado
+    <div class="sectionTitle">Acciones</div>
+
+    <button id="btnEliminarPJ" style="background:rgba(170,68,68,0.15); border-color:#c66;" disabled>
+        Eliminar personaje
     </button>
-    
-    <hr style="border-color:#333; margin: 15px 0;" />
-    
-    <div class="sectionTitle" style="margin-top: 15px;">Compartir/Respaldar Inventario</div>
-    <button id="btnExportData">📤 Exportar Inventario (.json)</button>
-    
-    <label for="importFile" style="display:block; margin-top: 8px;">
-        <button id="btnImportTrigger" style="width: 100%; margin-top: 0;">
-            📥 Importar/Cargar Inventario
-        </button>
+
+    <hr style="border:none; border-top:1px solid rgba(0,242,255,0.1); margin:18px 0;">
+
+    <div class="sectionTitle">Inventario</div>
+    <button id="btnExportData">📤 Exportar (.json)</button>
+    <label for="importFile">
+        <button id="btnImportTrigger" style="width:100%; margin-top:8px;">📥 Importar (.json)</button>
     </label>
-    <input type="file" id="importFile" accept=".json" style="display: none;" />
+    <input type="file" id="importFile" accept=".json" style="display:none;">
 
-    <div class="sectionTitle" style="margin-top: 15px;">Compartir/Respaldar Notas</div>
-    <button id="btnExportNotas">📤 Exportar Nota Seleccionada (.notes)</button>
-    
-    <label for="importNotesFile" style="display:block; margin-top: 8px;">
-        <button id="btnImportNotesTrigger" style="width: 100%; margin-top: 0;">
-            📥 Importar/Añadir Nota
-        </button>
+    <div class="sectionTitle">Notas</div>
+    <button id="btnExportNotas">📤 Exportar nota (.notes)</button>
+    <label for="importNotesFile">
+        <button id="btnImportNotesTrigger" style="width:100%; margin-top:8px;">📥 Importar nota</button>
     </label>
-    <input type="file" id="importNotesFile" accept=".notes" style="display: none;" />
+    <input type="file" id="importNotesFile" accept=".notes" style="display:none;">
 
-    <input type="file" id="importBaulFile" accept=".json" onchange="handleBaulImport(event)">
+    <!-- Baúl import (oculto, llamado desde el panel baúl) -->
+    <input type="file" id="importBaulFile" accept=".json" onchange="handleBaulImport(event)" style="display:none;">
 
-    <div class="infoRow" style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
-        <small>Haz clic para habilitar la música (autoplay).</small>
-        <button id="btnToggleVolume" style="width: auto; padding: 4px 8px; margin: 0; background: #222; border-color: #444; font-size: 16px;">
-            🔇
-        </button>
+    <div class="infoRow" style="margin-top:14px;">
+        <small style="color:rgba(0,242,255,0.4); font-size:9px;">Clic para habilitar música</small>
+        <button id="btnToggleVolume" style="width:auto; padding:4px 10px; margin:0; background:rgba(0,0,0,0.4); border-color:rgba(0,242,255,0.2); font-size:15px;">🔇</button>
     </div>
-</div>
+
+</div><!-- /#panelPersonajes -->
+
+
+<!-- ══════════════════════════════════════════════════════════
+     MAIN AREA
+     ══════════════════════════════════════════════════════════ -->
 <div id="mainArea">
+
+    <!-- ── INVENTARIO ────────────────────────────────────── -->
     <div class="inventoryColumn" id="colInventario">
+
+        <!-- Header personaje -->
         <div id="pjHeader" style="display:none;">
             <img id="pjFoto" src="" alt="Foto de Personaje">
             <h2 id="nombrePJ">Seleccioná un personaje</h2>
         </div>
-        
-        <!-- NUEVO: PANEL DE ESTADO DE SALUD -->
-        <div id="statusPanel" style="display:none; margin-top: 10px; padding: 8px; border: 1px solid #333; border-radius: 4px; background: #181818;">
-            <div style="font-weight: bold; margin-bottom: 5px;">Estado de Salud:</div>
-            <div id="healthBarContainer" style="display: flex; gap: 5px; align-items: center;">
-                <div id="healthStatusText" style="font-weight: bold; color: #7f7; text-shadow: 0 0 3px #0f0;">FINE</div>
-                <div style="flex-grow: 1; height: 10px; border-radius: 5px; background: #444; overflow: hidden;">
-                    <div id="healthBar" style="width: 100%; height: 100%; background: #0c0; transition: all 0.3s;"></div>
+
+        <!-- Panel de salud -->
+        <div id="statusPanel" style="display:none; margin-top:12px;">
+            <div class="pda-data-row" style="margin-bottom:6px;">
+                <span>ESTADO DE SALUD</span>
+                <span id="healthStatusText" style="font-weight:800; color:#7f7; text-shadow:0 0 6px #0f0;">FINE</span>
+            </div>
+            <div style="height:6px; background:rgba(255,255,255,0.06); border:1px solid rgba(0,242,255,0.15); overflow:hidden; margin-bottom:10px;">
+                <div id="healthBar" style="width:100%; height:100%; background:#0c0; transition:all 0.4s;"></div>
+            </div>
+            <div style="display:flex; gap:8px;">
+                <button onclick="changeHealthStatus('fine')"    style="flex:1; background:rgba(0,136,0,0.2);   border-color:#0c0; color:#0c0;">FINE</button>
+                <button onclick="changeHealthStatus('caution')" style="flex:1; background:rgba(136,136,0,0.2); border-color:#cc0; color:#cc0;">CAUTION</button>
+                <button onclick="changeHealthStatus('danger')"  style="flex:1; background:rgba(136,0,0,0.2);   border-color:#c00; color:#c00;">DANGER</button>
+            </div>
+        </div>
+
+        <!-- Placeholder vacío -->
+        <div id="inventarioPlaceholder" style="text-align:center; padding:60px 20px; color:rgba(0,242,255,0.25);">
+            <div style="font-size:11px; letter-spacing:4px;">SELECCIONÁ UN PERSONAJE</div>
+        </div>
+
+        <!-- Grid de inventario -->
+        <div id="inventarioGrid" class="inventarioGrid" style="--cols:8; display:none;"></div>
+
+        <!-- Panel añadir ítem (admin) -->
+        <div id="panelAddItem" style="margin-top:20px; display:none; border-top:2px solid var(--orange); padding-top:18px;">
+            <h3>[ MODO ADMIN: REGISTRO DE ÍTEMS ]</h3>
+
+            <div class="infoRow">DENOMINACIÓN:</div>
+            <input type="text" id="itemNombre" placeholder="Nombre del ítem..." />
+
+            <div class="infoRow">CATEGORÍA:</div>
+            <select id="itemTypeSelect">
+                <option value="generic">Ítem Genérico</option>
+                <option value="firearm">Arma de Fuego</option>
+                <option value="melee">Arma C/C</option>
+            </select>
+
+            <div class="infoRow">DESCRIPCIÓN:</div>
+            <input type="text" id="itemDescriptionInitial" placeholder="Ej: Calibre 9mm" />
+
+            <div style="display:flex; gap:12px; margin-top:10px;">
+                <div style="flex:1;">
+                    <div class="infoRow">SLOTS:</div>
+                    <input type="number" id="itemSlots" placeholder="Ej: 2" min="1" value="1" />
+                </div>
+                <div style="flex:1;">
+                    <div class="infoRow">STOCK:</div>
+                    <input type="number" id="itemCantidad" placeholder="Ej: 15" min="1" value="1" />
                 </div>
             </div>
-            <div style="display: flex; gap: 8px; margin-top: 8px;">
-                <button onclick="changeHealthStatus('fine')" style="flex: 1; background: #080; border-color: #0c0; margin-top:0;">FINE</button>
-                <button onclick="changeHealthStatus('caution')" style="flex: 1; background: #880; border-color: #cc0; margin-top:0;">CAUTION</button>
-                <button onclick="changeHealthStatus('danger')" style="flex: 1; background: #800; border-color: #c00; margin-top:0;">DANGER</button>
-            </div>
+
+            <div class="infoRow" style="margin-top:14px;">TEXTURA VISUAL:</div>
+            <label for="itemImagen" class="label-file2" id="label-foto-item"
+                   style="border-color:var(--orange); color:var(--orange); background:rgba(255,157,0,0.05);">
+                📂 SELECCIONAR IMAGEN
+            </label>
+            <input type="file" id="itemImagen" accept="image/*" onchange="actualizarTextoArchivo(this)" style="display:none;">
+
+            <button id="btnAgregarItem"
+                    style="width:100%; margin-top:12px; background:var(--orange); color:#000; font-weight:800; border:none;">
+                CONFIRMAR E IMPORTAR
+            </button>
+
+            <div id="mensajeEspacio" style="color:var(--red); margin-top:8px; font-size:10px; letter-spacing:1px;"></div>
         </div>
-        <!-- FIN: PANEL DE ESTADO DE SALUD -->
 
-        <div id="inventarioPlaceholder" style="text-align:center; padding:50px;">
-            <h2>Seleccioná un personaje de la izquierda para empezar.</h2>
+    </div><!-- /#colInventario -->
+
+
+    <!-- ── BAÚL ──────────────────────────────────────────── -->
+    <div class="inventoryColumn" id="colBaul">
+
+        <h2>Baúl del Personaje</h2>
+
+        <div class="import-baul-container">
+            <label for="importBaulFile" class="btn-import-baul">📥 IMPORTAR COMPRA AL BAÚL</label>
         </div>
 
-        <div id="inventarioGrid" class="inventarioGrid" style="--cols: 8; display:none;"></div>
-
-       <div id="panelAddItem" style="margin-top:20px; display:none; border-top: 2px solid #ff9d00; padding-top: 15px;">
-    <h3 style="color: #ff9d00; border-color: #ff9d00;">[ MODO ADMIN: REGISTRO DE ÍTEMS ]</h3>
-    
-    <div class="infoRow">DENOMINACIÓN DEL OBJETO:</div>
-    <input type="text" id="itemNombre" placeholder="Nombre del ítem..." />
-    
-    <div class="infoRow">CATEGORÍA DE SUMINISTRO:</div>
-    <select id="itemTypeSelect">
-        <option value="generic">Ítem Genérico</option>
-        <option value="firearm">Arma de Fuego</option>
-        <option value="melee">Arma Cuerpo a Cuerpo</option>
-    </select>
-    
-    <div class="infoRow">Descripcion:</div>
-    <input type="text" id="itemDescriptionInitial" placeholder="Descripción corta (ej: Calibre 9mm)" />
-
-    <div style="display: flex; gap: 10px; margin-top: 10px;">
-        <div style="flex: 1;">
-            <div class="infoRow">SLOTS (TAMAÑO):</div>
-            <input type="number" id="itemSlots" placeholder="Ej: 2" min="1" value="1" />
+        <div class="baulLabel" style="display:flex; align-items:center; gap:10px; margin:12px 0;">
+            <span style="font-size:10px; color:rgba(0,242,255,0.5); letter-spacing:2px;">SLOTS</span>
+            <input type="number" id="baulSlotsInput" value="15" min="2" class="label-file2" style="width:70px; margin:0;">
+            <button id="btnActualizarBaul" class="label-file">Actualizar</button>
         </div>
-        <div style="flex: 1;">
-            <div class="infoRow">STOCK INICIAL:</div>
-            <input type="number" id="itemCantidad" placeholder="Ej: 15" min="1" value="1" />
-        </div>
-    </div>
 
-    <div class="infoRow" style="margin-top: 15px;">ASIGNAR TEXTURA VISUAL:</div>
-    <label for="itemImagen" class="label-file2" id="label-foto-item" style="border-color: #ff9d00; color: #ff9d00; background: rgba(255,157,0,0.05);">
-        📂 SELECCIONAR ARCHIVO DE IMAGEN
-    </label>
-    <input type="file" id="itemImagen" accept="image/*" onchange="actualizarTextoArchivo(this)" />
+        <div id="baulGrid" class="inventarioGrid" style="--cols:5;"></div>
 
-    <button id="btnAgregarItem" class="sectionTitle3" style="background: #ff9d00; color: #000; margin-top: 10px;">
-        CONFIRMAR E IMPORTAR AL INVENTARIO
-    </button>
-    
-    <div id="mensajeEspacio" style="color:#ff0202; margin-top:8px; font-weight: bold; font-size: 10px;"></div>
-</div>
-    </div>
-<div class="inventoryColumn" id="colBaul">
-    <h2>Baúl del personaje</h2>
-    
-    <div class="import-baul-container">
-        <label for="importBaulFile" class="btn-import-baul">
-            📥 IMPORTAR COMPRA AL BAÚL
-        </label>
-        <input type="file" id="importBaulFile" accept=".json" onchange="handleBaulImport(event)">
-    </div>
+        <p style="margin-top:10px; color:rgba(0,242,255,0.3); font-size:10px; letter-spacing:1px;">
+            Mové ítems entre el inventario y el baúl.
+        </p>
 
-    <div class="baulLabel">
-        Slots: <input type="number" id="baulSlotsInput" value="15" min="2" class="label-file2">
-        <button id="btnActualizarBaul" class="label-file2">Actualizar</button>
-    </div>
-    
-    <div id="baulGrid" class="inventarioGrid" style="--cols: 5;"></div>
+    </div><!-- /#colBaul -->
 
-    <div style="margin-top:12px; color:#ccc; font-size:13px;">
-        <small>Puedes mover ítems entre el inventario y el baúl del personaje.</small>
-    </div>
-</div>
+
+    <!-- ── NOTAS / LORE ──────────────────────────────────── -->
     <div id="colNotas">
-    <h2>Archivo de Datos</h2>
-    
-    <div class="contenedor-lore-principal">
-        <div class="lista-lateral-notas">
-            <h3>Registros</h3>
-            <div id="notasList">
-                </div>
-        </div>
 
-        <div class="visor-datos-nota">
-            <input type="text" id="noteTitleInput" class="label-file" placeholder="ID del Registro..." />
-            
-            <div class="cuerpo-nota-integrado">
-                <div class="zona-imagen">
-                    <img id="noteImagePreview" src="" class="ImagenNota">
-                    <audio id="noteAudioPlayer" controls style="display:none; width: 150px; margin-top: 10px;"></audio>
-    
-    <div class="controles-carga">
-        <label for="noteImageUpload" class="label-file">Cargar Imagen</label>
-        <input type="file" id="noteImageUpload" accept="image/*">
-        
-     
-        <input type="file" id="noteAudioUpload" accept="audio/*"> </div>
-                </div>
-                <textarea id="noteContent" placeholder="Esperando datos..."></textarea>
+        <h2>Archivo de Datos</h2>
+
+        <div class="contenedor-lore-principal">
+
+            <!-- Lista lateral -->
+            <div class="lista-lateral-notas">
+                <h3>Registros</h3>
+                <div id="notasList" class="label-file"></div>
             </div>
+
+            <!-- Visor de nota -->
+            <div class="visor-datos-nota">
+                <input type="text" id="noteTitleInput" class="label-file" placeholder="ID del Registro..." />
+
+                <div class="cuerpo-nota-integrado" style="display:flex; gap:16px; flex:1; margin-top:14px; overflow:hidden;">
+
+                    <!-- Zona multimedia -->
+                    <div class="zona-multimedia-vertical">
+                        <img id="noteImagePreview" src="" class="ImagenNota" alt="">
+                        <audio id="noteAudioPlayer" controls style="display:none;"></audio>
+
+                        <div class="controles-carga" style="display:flex; flex-direction:column; gap:8px;">
+                            <label for="noteImageUpload" class="label-file" style="margin:0;">Cargar Imagen</label>
+                            <input type="file" id="noteImageUpload" accept="image/*" style="display:none;">
+
+                        </div>
+                    </div>
+
+                    <!-- Textarea -->
+                    <textarea id="noteContent" placeholder="Esperando datos..." style="flex:1;"></textarea>
+
+                </div>
+            </div>
+
         </div>
-    </div>
 
-    <div class="botones-lore-footer">
-        <button id="btnNewNote">Nuevo Registro</button>
-        <button id="btnSaveNote">Sincronizar</button>
-        <button id="btnDeleteNote">Purgar</button>
+        <div class="botones-lore-footer" style="display:flex; gap:12px; margin-top:14px;">
+            <button id="btnNewNote" class="label-file">Nuevo Registro</button>
+            <button id="btnSaveNote" class="label-file">Sincronizar</button>
+            <button id="btnDeleteNote" style="color:var(--red); border-color:var(--red); background:rgba(255,2,2,0.06);">Purgar</button>
+        </div>
+
+    </div><!-- /#colNotas -->
+
+</div><!-- /#mainArea -->
+
+
+<!-- ══════════════════════════════════════════════════════════
+     CONTEXT MENU — desktop (right-click sobre ítem)
+     ══════════════════════════════════════════════════════════ -->
+<div id="contextMenu" class="context-menu" role="menu" aria-hidden="true">
+    <div class="context-header">
+        <span id="ctxItemName">—</span>
+        <span class="ctx-tag">OBJETO</span>
+    </div>
+    <div class="context-button">
+        <button id="ctxViewStats">📊 Ver / Mejorar Stats</button>
+        <button id="ctxMoveToBaul">📦 Mover al baúl</button>
+        <button id="ctxMoveToInv">🔄 Mover al inventario</button>
+        <button id="ctxDelete"   style="color:var(--red); border-color:var(--red);">🗑 Eliminar</button>
+        <button id="ctxClose"    style="color:rgba(0,242,255,0.4); border-color:rgba(0,242,255,0.15);">✕ Cancelar</button>
     </div>
 </div>
 
 
-<div id="fixedActionPanel" class="terminal-footer">
-    <div class="panel-header">
-        <span class="status-dot"></span> 
-        SISTEMA DE GESTIÓN: <span id="selectedItemName">NINGÚN OBJETO SELECCIONADO</span>
-    </div>
-    <div class="panel-buttons">
-        <button onclick="ejecutarAccion('stats')">📊 STATS / MEJORAR</button>
-        <button onclick="ejecutarAccion('baul')">📦 AL BAÚL</button>
-        <button onclick="ejecutarAccion('eliminar')" style="color: #ff0000; border-color: #550000;">🗑️ ELIMINAR</button>
-    </div>
-</div>
-
-
-<!-- NUEVO: Modal para ver/editar Stats y Descripción -->
+<!-- ══════════════════════════════════════════════════════════
+     STATS MODAL — se abre desde el context menu / action sheet
+     ══════════════════════════════════════════════════════════ -->
 <div id="statsModal">
     <div id="statsModalContent">
-        <h3 id="statsModalTitle">Stats y Descripción del Ítem</h3>
-        
-        <div id="statsModalImageContainer">
-            <img id="statsModalImage" src="" alt="Imagen del Ítem">
+
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
+            <h3 id="statsModalTitle" style="color:var(--cyan); letter-spacing:3px;">STATS DEL ÍTEM</h3>
+            <button id="btnCloseStats" style="width:auto; padding:4px 12px; margin:0; font-size:11px;">✕</button>
         </div>
 
-        <div id="statsInputsContainer">
-            <!-- Los inputs de las stats se inyectarán aquí por JS -->
+        <div id="statsModalImageContainer" style="text-align:center; margin-bottom:20px;">
+            <img id="statsModalImage" src="" alt="Imagen del Ítem"
+                 style="max-height:120px; object-fit:contain; filter:drop-shadow(0 0 12px var(--cyan));">
         </div>
 
-        <label for="statsModalDescription" class="sectionTitle">Descripción</label>
-        <textarea id="statsModalDescription" placeholder="Añade o edita una descripción detallada del ítem o sus mejoras."></textarea>
+        <div id="statsInputsContainer"></div>
 
-        <div id="statsModalButtons">
-            <button id="btnSaveStats">Guardar Cambios</button>
-            <button id="btnCloseStats">Cerrar</button>
+        <div class="sectionTitle" style="margin-top:20px;">Descripción</div>
+        <textarea id="statsModalDescription"
+                  placeholder="Añadí o editá una descripción detallada..."
+                  style="width:100%; min-height:100px; margin-top:8px;"></textarea>
+
+        <div id="statsModalButtons" style="display:flex; gap:12px; margin-top:20px;">
+            <button id="btnSaveStats" style="flex:1; background:var(--cyan); color:#000; font-weight:800; border:none;">
+                Guardar Cambios
+            </button>
         </div>
+
     </div>
 </div>
 
-<div id="fixedActionPanel" class="terminal-footer">
-    <div class="panel-header" style="padding-bottom: 5px; border-bottom: 1px solid rgba(0,242,255,0.2);">
-        <span class="status-dot"></span> 
-        ID-SISTEMA: <span id="selectedItemName" style="font-weight: bold;">[ ESPERANDO SELECCIÓN ]</span>
-    </div>
-    <div class="panel-buttons" style="margin-top: 10px;">
-        <button onclick="ejecutarAccion('stats')">MODIFICAR STATS</button>
-        <button onclick="ejecutarAccion('eliminar')" style="color: #ff4444; border-color: #550000;">ELIMINAR</button>
+
+<!-- ══════════════════════════════════════════════════════════
+     MOBILE ACTION SHEET — touch / long-press sobre ítem
+     ══════════════════════════════════════════════════════════ -->
+<div id="mobileActionSheet" class="mobile-sheet">
+    <div class="sheet-overlay" onclick="cerrarPanelMovil()"></div>
+    <div class="sheet-content">
+        <div class="sheet-handle"></div>
+        <div id="sheetItemTitle" style="color:var(--cyan); font-weight:800; margin-bottom:18px; letter-spacing:2px;">
+            Opciones de Equipo
+        </div>
+        <button onclick="abrirModalStats(itemSeleccionadoGlobal); cerrarPanelMovil();">📊 VER / MEJORAR STATS</button>
+        <button onclick="accionMoverAlBaul(); cerrarPanelMovil();">📦 MOVER AL BAÚL</button>
+        <button onclick="accionEliminar(); cerrarPanelMovil();"
+                style="color:var(--red); border-color:var(--red); background:rgba(255,2,2,0.08);">
+            🗑 ELIMINAR OBJETO
+        </button>
+        <button onclick="cerrarPanelMovil()" class="btn-cancelar"
+                style="margin-top:8px; color:rgba(0,242,255,0.4); border-color:rgba(0,242,255,0.15);">
+            CANCELAR
+        </button>
     </div>
 </div>
 
+
+<!-- ══════════════════════════════════════════════════════════
+     AUDIO
+     ══════════════════════════════════════════════════════════ -->
 <audio id="bgm" loop>
     <source src="Untitled (1).mp3" type="audio/mpeg">
 </audio>
@@ -1160,20 +1436,21 @@ input[type="file"] {
 
 <script>
 
-window.addEventListener('load', () => {
-    const splash = document.getElementById('pda-boot-screen');
+window.onload = () => {
+    const bootScreen = document.getElementById('pda-boot-screen');
     
-    // Esperamos 4 segundos (lo que dura la animación de la barra) y quitamos la pantalla
+    // Esperamos 3.5 segundos (lo que dura la barra de carga)
     setTimeout(() => {
-        splash.classList.add('pda-ready');
-        
-        // Opcional: Sonido de encendido
-     
-        
-    }, 4500); 
-});
-
-
+        if (bootScreen) {
+            bootScreen.classList.add('pda-ready'); // Esta clase lo oculta
+            
+            // Opcional: Eliminarlo del mapa después de 1 segundo de la transición
+            setTimeout(() => {
+                bootScreen.style.display = 'none';
+            }, 1000);
+        }
+    }, 4000); 
+};
 
 
 /* ============================================================
@@ -1200,82 +1477,45 @@ const GAP_SIZE = 6;  
 
 
 
+let toqueTimer;
+let itemSeleccionadoGlobal = null;
+const esCelular = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-
-
-
-
-
-// Variable global para el ítem activo
-let itemSeleccionadoId = null; 
-
-// ESCUCHADOR GLOBAL DE CLICS
-document.addEventListener('click', function(e) {
-    // Buscamos si el clic fue en un ítem o dentro de un ítem
+// --- GESTIÓN DE ITEMS ---
+document.addEventListener('touchstart', function(e) {
     const item = e.target.closest('.item');
-    
-    // Si tocamos un ítem...
-    if (item) {
-        // 1. Guardamos la referencia real del elemento HTML
-        itemSeleccionadoId = item;
-        
-        // 2. Quitamos el brillo de cualquier otro ítem seleccionado antes
-        document.querySelectorAll('.item').forEach(i => i.style.boxShadow = "none");
-        
-        // 3. Le ponemos un brillo cian al que tocamos para saber que está seleccionado
-        item.style.boxShadow = "0 0 15px #00f2ff";
-        
-        // 4. Actualizamos el nombre en el panel de abajo
-        const nombre = item.querySelector('span')?.innerText || "OBJETO";
-        const labelPanel = document.getElementById('selectedItemName');
-        if (labelPanel) {
-            labelPanel.innerText = nombre.toUpperCase();
-            labelPanel.style.color = "#00f2ff";
-        }
-        
-        // 5. Activamos el panel
-        document.getElementById('fixedActionPanel').classList.add('active');
-        
-        console.log("Ítem seleccionado listo para acción:", itemSeleccionadoId.id);
-    } 
-    // Si tocamos el botón de mejorar/eliminar, NO deseleccionamos nada
-    else if (e.target.closest('.terminal-footer')) {
-        return; 
-    }
-    // Si tocamos cualquier otra cosa (el fondo), deseleccionamos
-    else {
-        // resetPanel(); // Descomenta esta línea si querés que se limpie al tocar el fondo
-    }
-});
+    if (!item || !esCelular) return;
 
-// FUNCIÓN PARA LOS BOTONES DEL PANEL
-function ejecutarAccion(tipo) {
-    if (!itemSeleccionadoId) {
-        alert("SISTEMA: SELECCIONE UN OBJETO EN EL INVENTARIO");
-        return;
-    }
+    // Si es celu, esperamos el long press
+    toqueTimer = setTimeout(() => {
+        if (navigator.vibrate) navigator.vibrate(50); // Vibración de confirmación
+        itemSeleccionadoGlobal = item;
+        abrirPanelMovil();
+    }, 600); 
+}, { passive: true });
 
-    if (tipo === 'stats') {
-        // Llamamos a tu función de modal pasándole el objeto seleccionado
-        if (typeof abrirModalStats === "function") {
-            abrirModalStats(itemSeleccionadoId);
-        } else {
-            console.error("La función abrirModalStats no existe.");
-        }
-    } 
-    else if (tipo === 'eliminar') {
-        if (confirm("¿ELIMINAR SUMINISTRO?")) {
-            itemSeleccionadoId.remove();
-            itemSeleccionadoId = null;
-            document.getElementById('selectedItemName').innerText = "NINGÚN OBJETO SELECCIONADO";
-            document.getElementById('fixedActionPanel').classList.remove('active');
-        }
-    }
+document.addEventListener('touchend', () => clearTimeout(toqueTimer));
+document.addEventListener('touchmove', () => clearTimeout(toqueTimer)); // Si desliza, cancelamos
+
+// --- FUNCIONES DEL PANEL ---
+function abrirPanelMovil() {
+    document.getElementById('mobileActionSheet').classList.add('active');
+    document.body.style.overflow = 'hidden'; // Evita scroll de fondo
 }
 
+function cerrarPanelMovil() {
+    document.getElementById('mobileActionSheet').classList.remove('active');
+    document.body.style.overflow = 'auto';
+}
 
-
-
+// --- PREVENIR MENÚ NATIVO EN CELU ---
+window.oncontextmenu = function(event) {
+    if (esCelular) {
+        event.preventDefault();
+        event.stopPropagation();
+        return false;
+    }
+};
 
 
 // Vinculación: Asegúrate de que tus ítems tengan onclick="manejarClickItem(event, this)"
