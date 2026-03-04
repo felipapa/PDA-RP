@@ -5,1121 +5,135 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>PDA</title>
 <style>
-/******************************************************************************
- * NEOMUTATION PDA — OS v5.0.4 // BIOHAZARD PROTOCOL
- ******************************************************************************/
-
-/*-----------------------------------------------------------------------------
- * 1. IMPORTS
- *----------------------------------------------------------------------------*/
 @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=JetBrains+Mono:wght@100;300;500;800&family=Share+Tech+Mono&display=swap');
-
-/*-----------------------------------------------------------------------------
- * 2. VARIABLES
- *----------------------------------------------------------------------------*/
 :root {
-    --cyan:        #00f2ff;
-    --cyan-mid:    rgba(0, 242, 255, 0.5);
-    --cyan-low:    rgba(0, 242, 255, 0.08);
-    --cyan-glow:   rgba(0, 242, 255, 0.25);
-    --orange:      #ff9d00;
-    --orange-glow: rgba(255, 157, 0, 0.35);
-    --red:         #ff0202;
-    --red-glow:    rgba(255, 2, 2, 0.4);
-    --bg:          #020205;
-    --bg-panel:    rgba(3, 8, 16, 0.98);
-    --font-mono:   'JetBrains Mono', monospace;
-    --font-term:   'Share Tech Mono', monospace;
-    --font-body:   'Courier Prime', monospace;
-
-    /* Backward-compat aliases (used in older selectors) */
-    --pda-cyan:       var(--cyan);
-    --pda-cyan-dim:   var(--cyan-mid);
-    --pda-cyan-low:   var(--cyan-low);
-    --pda-orange:     var(--orange);
-    --pda-red:        var(--red);
-    --pda-red-glow:   var(--red-glow);
-    --pda-bg-main:    var(--bg);
-    --pda-bg-panel:   var(--bg-panel);
-}
-
-/*-----------------------------------------------------------------------------
- * 3. RESET & BODY
- *----------------------------------------------------------------------------*/
-*, *::before, *::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    user-select: none;
-    -webkit-user-drag: none;
-    outline: none;
-}
-
-body {
-    background-color: var(--bg);
-    background-image:
-        radial-gradient(ellipse at 50% 0%, rgba(0, 242, 255, 0.04) 0%, transparent 65%),
-        repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0, 0, 0, 0.18) 3px, rgba(0, 0, 0, 0.18) 4px);
-    color: var(--cyan);
-    font-family: var(--font-body);
-    display: flex;
-    flex-direction: row;
-    padding: 20px;
-    gap: 20px;
-    min-height: 100vh;
-    text-transform: uppercase;
-    overflow-x: hidden;
-}
-
-/*-----------------------------------------------------------------------------
- * 4. SCROLLBAR
- *----------------------------------------------------------------------------*/
-::-webkit-scrollbar       { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: rgba(0,0,0,0.6); border: 1px solid var(--cyan-low); }
-::-webkit-scrollbar-thumb { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
-::-webkit-scrollbar-thumb:hover { background: var(--orange); box-shadow: 0 0 12px var(--orange); }
-
-/*-----------------------------------------------------------------------------
- * 5. PANEL PERSONAJES
- *----------------------------------------------------------------------------*/
-#panelPersonajes {
-    width: 290px;
-    flex-shrink: 0;
-    background: var(--bg-panel);
-    padding: 25px;
-    border: 1px solid var(--cyan);
-    border-right: 5px solid var(--cyan);
-    height: fit-content;
-    box-shadow: 0 0 40px var(--cyan-glow), inset 0 0 30px rgba(0,0,0,0.4);
-    position: relative;
-    overflow: hidden;
-}
-
-#panelPersonajes::before {
-    content: "USER AUTHENTICATED";
-    position: absolute;
-    top: 6px; right: 10px;
-    font-size: 8px;
-    color: var(--cyan-mid);
-    font-family: var(--font-term);
-    letter-spacing: 1.5px;
-}
-
-#panelPersonajes::after {
-    content: "";
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
-    opacity: 0.6;
-}
-
-/* Section headers */
-#panelPersonajes h3,
-.sectionTitle,
-.sectionTitle3 {
-    margin-top: 28px;
-    margin-bottom: 12px;
-    font-size: 11px;
-    color: var(--orange);
-    border-bottom: 1px solid var(--orange);
-    padding-bottom: 6px;
-    display: block;
-    letter-spacing: 3px;
-    text-shadow: 0 0 10px var(--orange-glow);
-}
-
-/* Character buttons */
-#panelPersonajes button {
-    width: 100%;
-    margin-bottom: 10px;
-    padding: 11px 14px;
-    background: var(--cyan-low);
-    border: 1px solid rgba(0, 242, 255, 0.2);
-    color: var(--cyan);
-    cursor: pointer;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 1px;
-    transition: all 0.25s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-#panelPersonajes button::before {
-    content: "";
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 2px;
-    background: var(--cyan);
-    transform: scaleY(0);
-    transition: transform 0.25s ease;
-}
-
-#panelPersonajes button:hover {
-    background: rgba(0, 242, 255, 0.12);
-    border-color: var(--cyan);
-    padding-left: 20px;
-    box-shadow: inset 0 0 20px rgba(0, 242, 255, 0.08);
-}
-
-#panelPersonajes button:hover::before {
-    transform: scaleY(1);
-}
-
-#listaPersonajes button.selected {
-    background: var(--orange);
-    color: #000;
-    box-shadow: 0 0 20px var(--orange-glow), inset 0 0 10px rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.4);
-    font-weight: 800;
-}
-
-#listaPersonajes button.selected::before {
-    background: #000;
-    transform: scaleY(1);
-}
-
-/*-----------------------------------------------------------------------------
- * 6. MAIN AREA & HEADER
- *----------------------------------------------------------------------------*/
-#mainArea {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    flex-grow: 1;
-}
-
-#pjHeader {
-    display: flex;
-    align-items: center;
-    gap: 25px;
-    background: rgba(0, 242, 255, 0.04);
-    padding: 20px;
-    border: 1px solid rgba(0, 242, 255, 0.25);
-    border-left: 10px solid var(--cyan);
-    box-shadow: 0 0 30px rgba(0,0,0,0.4), inset 0 0 40px rgba(0, 242, 255, 0.03);
-    position: relative;
-}
-
-#pjFoto {
-    width: 90px;
-    height: 110px;
-    object-fit: cover;
-    border: 2px solid var(--cyan);
-    background: #000;
-    box-shadow: 0 0 20px var(--cyan-glow);
-    filter: brightness(1.1) contrast(1.05);
-}
-
-/*-----------------------------------------------------------------------------
- * 7. INVENTORY GRID
- *----------------------------------------------------------------------------*/
-.inventoryColumn {
-    background: rgba(3, 8, 18, 0.95);
-    padding: 20px;
-    border: 1px solid rgba(0, 242, 255, 0.15);
-    position: relative;
-}
-
-.inventoryColumn::before {
-    content: "";
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
-    opacity: 0.4;
-}
-
-.inventarioGrid {
-    display: grid;
-    grid-template-rows: repeat(2, 115px);
-    grid-auto-flow: column;
-    grid-auto-columns: 145px;
-    gap: 12px;
-    background: #000205;
-    border: 1px solid rgba(0, 242, 255, 0.3);
-    padding: 18px;
-    overflow-x: auto;
-    min-height: 280px;
-    box-shadow:
-        inset 0 0 60px rgba(0, 242, 255, 0.05),
-        inset 0 0 2px rgba(0, 242, 255, 0.1);
-}
-
-.slot {
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 242, 255, 0.015);
-    border: 1px solid rgba(0, 242, 255, 0.08);
-    position: relative;
-    transition: border-color 0.2s, background 0.2s;
-}
-
-.slot:hover {
-    border-color: rgba(255,255,255,0.3);
-    background: rgba(0, 242, 255, 0.04);
-    box-shadow: inset 0 0 15px rgba(255,255,255,0.05);
-}
-
-/*-----------------------------------------------------------------------------
- * 8. ITEMS
- *----------------------------------------------------------------------------*/
-.item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    padding: 10px;
-    background: linear-gradient(145deg, rgba(0, 35, 55, 0.95) 0%, rgba(0, 5, 12, 1) 100%);
-    border: 1px solid var(--cyan);
-    position: absolute;
-    top: 0; left: 0;
-    cursor: pointer;
-    transition: box-shadow 0.2s, border-color 0.2s;
-}
-
-.item:hover {
-    box-shadow: 0 0 20px var(--cyan-glow);
-    border-color: #fff;
-}
-
-.item img {
-    width: 100%;
-    height: 68px;
-    object-fit: contain;
-    pointer-events: none;
-    margin-bottom: 6px;
-    mix-blend-mode: screen;
-    filter: drop-shadow(0 0 6px var(--cyan));
-    transition: filter 0.2s;
-}
-
-.item:hover img {
-    filter: drop-shadow(0 0 12px var(--cyan)) brightness(1.2);
-}
-
-.item span {
-    font-size: 10px;
-    text-align: center;
-    color: var(--cyan);
-    font-family: var(--font-term);
-    letter-spacing: 0.5px;
-    line-height: 1.3;
-}
-
-/*-----------------------------------------------------------------------------
- * 9. LORE PANEL
- *----------------------------------------------------------------------------*/
-.contenedor-lore-principal {
-    display: grid;
-    grid-template-columns: 380px 1fr;
-    gap: 18px;
-    height: 580px;
-    margin-top: 12px;
-}
-
-.lista-lateral-notas {
-    background: var(--bg-panel);
-    border: 1px solid rgba(0, 242, 255, 0.12);
-    padding: 14px;
-    overflow-y: auto;
-}
-
-.visor-datos-nota {
-    background: rgba(0, 4, 10, 0.98);
-    border: 1px solid var(--cyan);
-    padding: 25px;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 0 50px rgba(0,0,0,0.6), inset 0 0 30px rgba(0, 242, 255, 0.02);
-    position: relative;
-}
-
-.visor-datos-nota::before {
-    content: "";
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, var(--cyan), transparent);
-}
-
-/*-----------------------------------------------------------------------------
- * 10. FILE LABELS / IMPORT BUTTONS
- *----------------------------------------------------------------------------*/
-.label-file,
-.label-file2,
-.btn-import-baul {
-    display: block;
-    background: rgba(0, 242, 255, 0.07);
-    border: 1px solid rgba(0, 242, 255, 0.4);
-    color: var(--cyan);
-    font-size: 10px;
-    padding: 13px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-weight: bold;
-    margin: 10px 0;
-    font-family: var(--font-mono);
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-}
-
-.label-file:hover,
-.label-file2:hover,
-.btn-import-baul:hover {
-    background: var(--cyan);
-    color: #000;
-    box-shadow: 0 0 25px var(--cyan-glow);
-    letter-spacing: 2px;
-}
-
-.label-file3 {
-    display: block;
-    background: rgba(255, 2, 2, 0.06);
-    border: 1px solid rgba(255, 2, 2, 0.4);
-    color: var(--red);
-    padding: 13px;
-    text-align: center;
-    font-size: 10px;
-    font-family: var(--font-mono);
-    letter-spacing: 1.5px;
-    cursor: pointer;
-    margin-bottom: 80px;
-    transition: all 0.2s ease;
-}
-
-.label-file3:hover {
-    background: var(--red);
-    color: #fff;
-    box-shadow: 0 0 25px var(--red-glow);
-}
-
-/*-----------------------------------------------------------------------------
- * 11. TERMINAL FOOTER
- *----------------------------------------------------------------------------*/
-.terminal-footer {
-    position: fixed;
-    bottom: 0; left: 0; width: 100%;
-    background: rgba(1, 6, 14, 0.99);
-    border-top: 2px solid var(--cyan);
-    padding: 14px 40px;
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    box-shadow: 0 -15px 40px rgba(0,0,0,0.95), 0 -1px 0 var(--cyan-glow);
-    transform: translateY(100%);
-    transition: transform 0.45s cubic-bezier(0.19, 1, 0.22, 1);
-}
-
-.terminal-footer.active {
-    transform: translateY(0);
-}
-
-.panel-header {
-    font-size: 10px;
-    color: var(--cyan-mid);
-    font-family: var(--font-mono);
-    letter-spacing: 3px;
-}
-
-.panel-buttons {
-    display: flex;
-    gap: 15px;
-}
-
-.panel-buttons button {
-    flex: 1;
-    background: rgba(0, 242, 255, 0.04);
-    border: 1px solid rgba(0, 242, 255, 0.3);
-    color: var(--cyan);
-    padding: 14px;
-    font-family: var(--font-mono);
-    font-weight: bold;
-    font-size: 11px;
-    letter-spacing: 1.5px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-.panel-buttons button::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, var(--cyan-low), transparent);
-    opacity: 0;
-    transition: opacity 0.2s;
-}
-
-.panel-buttons button:hover {
-    border-color: var(--cyan);
-    color: #fff;
-    box-shadow: 0 0 15px var(--cyan-glow);
-}
-
-.panel-buttons button:hover::after {
-    opacity: 1;
-}
-
-/*-----------------------------------------------------------------------------
- * 12. STATS MODAL
- *----------------------------------------------------------------------------*/
-#statsModal {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.92);
-    z-index: 2000000;
-    display: none;
-    justify-content: center;
-    align-items: center;
-    backdrop-filter: blur(8px);
-}
-
-#statsModalContent {
-    background: #01040a;
-    border: 2px solid var(--cyan);
-    padding: 40px;
-    width: 95%;
-    max-width: 640px;
-    box-shadow: 0 0 80px var(--cyan-glow), 0 0 200px rgba(0, 242, 255, 0.08);
-    position: relative;
-    background-image: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 19px,
-        rgba(0, 242, 255, 0.025) 19px,
-        rgba(0, 242, 255, 0.025) 20px
-    );
-}
-
-#statsModalContent::before,
-#statsModalContent::after {
-    content: "";
-    position: absolute;
-    width: 12px; height: 12px;
-    border-color: var(--orange);
-    border-style: solid;
-}
-
-#statsModalContent::before {
-    top: -1px; left: -1px;
-    border-width: 2px 0 0 2px;
-}
-
-#statsModalContent::after {
-    bottom: -1px; right: -1px;
-    border-width: 0 2px 2px 0;
-}
-
-/*-----------------------------------------------------------------------------
- * 13. BOOT SCREEN
- *----------------------------------------------------------------------------*/
-#pda-boot-screen {
-    position: fixed;
-    inset: 0;
-    background: #000;
-    z-index: 9999999;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-}
-
-.boot-logo {
-    width: 260px;
-    filter: drop-shadow(0 0 30px var(--cyan)) drop-shadow(0 0 60px rgba(0, 242, 255, 0.3));
-    margin-bottom: 40px;
-}
-
-.boot-bar {
-    width: 340px;
-    height: 3px;
-    background: rgba(0, 242, 255, 0.06);
-    border: 1px solid rgba(0, 242, 255, 0.3);
-    position: relative;
-    overflow: hidden;
-}
-
-.boot-progress {
-    height: 100%;
-    width: 0%;
-    background: var(--cyan);
-    box-shadow: 0 0 15px var(--cyan), 0 0 30px var(--cyan-glow);
-    transition: width 0.1s linear;
-}
-
-/*-----------------------------------------------------------------------------
- * 14. MULTIMEDIA
- *----------------------------------------------------------------------------*/
-.zona-multimedia-vertical {
-    width: 200px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    flex-shrink: 0;
-}
-
-.ImagenNota {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    border: 1px solid var(--cyan);
-    background: #000;
-    box-shadow: 0 0 20px var(--cyan-glow);
-}
-
-#noteAudioPlayer {
-    width: 100%;
-    height: 32px;
-    filter: invert(100%) hue-rotate(180deg) brightness(1.5);
-}
-
-/*-----------------------------------------------------------------------------
- * 15. NOTE CONTENT TEXTAREA
- *----------------------------------------------------------------------------*/
-#noteContent {
-    background: rgba(0, 4, 8, 1);
-    border: 1px solid rgba(0, 242, 255, 0.3);
-    color: var(--cyan);
-    font-family: var(--font-mono);
-    font-size: 12px;
-    line-height: 1.7;
-    text-transform: none;
-    padding: 20px;
-    resize: none;
-    transition: border-color 0.2s;
-}
-
-#noteContent:focus {
-    border-color: var(--cyan);
-    box-shadow: 0 0 15px rgba(0, 242, 255, 0.1);
-}
-
-/*-----------------------------------------------------------------------------
- * 16. UTILITIES
- *----------------------------------------------------------------------------*/
-.pda-text-glitch  { font-weight: 800; color: var(--orange); text-shadow: 0 0 8px var(--orange-glow); }
-.pda-border-blink { animation: flicker 2s infinite; }
-.pda-data-row     { display: flex; justify-content: space-between; border-bottom: 1px solid var(--cyan-low); padding: 5px 0; font-size: 10px; letter-spacing: 0.5px; }
-
-/*-----------------------------------------------------------------------------
- * 17. ANIMATIONS
- *----------------------------------------------------------------------------*/
-@keyframes scan {
-    0%   { transform: translateY(-100%); }
-    100% { transform: translateY(1000%); }
-}
-
-@keyframes flicker {
-    0%, 95%, 100% { opacity: 1; }
-    96%            { opacity: 0.4; }
-    97%            { opacity: 1; }
-    98%            { opacity: 0.2; }
-}
-
-@keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 10px var(--cyan-glow); }
-    50%       { box-shadow: 0 0 30px var(--cyan-glow), 0 0 60px rgba(0, 242, 255, 0.1); }
-}
-
-@keyframes slide-up {
-    from { transform: translateY(10px); opacity: 0; }
-    to   { transform: translateY(0);    opacity: 1; }
-}
-
-/*-----------------------------------------------------------------------------
- * 18. RESPONSIVE
- *----------------------------------------------------------------------------*/
-@media (max-width: 900px) {
-    body {
-        flex-direction: column;
-        padding: 10px;
-    }
-
-    #panelPersonajes {
-        width: 100%;
-        order: 2;
-        border-right: 1px solid var(--cyan);
-        border-top: 4px solid var(--cyan);
-    }
-
-    #mainArea {
-        width: 100%;
-        order: 1;
-    }
-
-    .inventarioGrid {
-        grid-template-rows: auto;
-        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-        grid-auto-flow: row;
-        max-height: 480px;
-    }
-
-    .contenedor-lore-principal {
-        grid-template-columns: 1fr;
-        height: auto;
-    }
-
-    .terminal-footer {
-        padding: 16px 20px;
-    }
-
-    .panel-buttons {
-        gap: 8px;
-    }
-
-    .panel-buttons button {
-        padding: 12px 6px;
-        font-size: 10px;
-    }
-
-    #pjHeader {
-        flex-direction: column;
-        text-align: center;
-    }
-}
-
-
-/*-----------------------------------------------------------------------------
- * NEOMUTATION PDA — ADDENDUM CSS
- * Context menu · Stats modal · Mobile sheet · Inputs · Misc
- *----------------------------------------------------------------------------*/
-
-/*-----------------------------------------------------------------------------
- * INPUTS & SELECTS (UNIFIED TERMINAL STYLE)
- *----------------------------------------------------------------------------*/
-input[type="text"],
-input[type="number"],
-textarea,
-select {
-    width: 100%;
-    background: rgba(0, 4, 10, 0.9);
-    border: 1px solid rgba(0, 242, 255, 0.25);
-    color: var(--cyan);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    padding: 10px 12px;
-    margin-top: 4px;
-    outline: none;
-    text-transform: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    -webkit-appearance: none;
-    appearance: none;
-}
-
-input[type="text"]::placeholder,
-input[type="number"]::placeholder,
-textarea::placeholder {
-    color: rgba(0, 242, 255, 0.2);
-    letter-spacing: 1px;
-}
-
-input[type="text"]:focus,
-input[type="number"]:focus,
-textarea:focus,
-select:focus {
-    border-color: var(--cyan);
-    box-shadow: 0 0 12px rgba(0, 242, 255, 0.12);
-}
-
-select option {
-    background: #01060e;
-    color: var(--cyan);
-}
-
-textarea {
-    resize: vertical;
-    min-height: 80px;
-    line-height: 1.6;
-}
-
-/* Inputs ocultos (file pickers) */
-input[type="file"] {
-    display: none;
-}
-
-/*-----------------------------------------------------------------------------
- * CONTEXT MENU (desktop right-click)
- *----------------------------------------------------------------------------*/
-.context-menu {
-    position: fixed;
-    z-index: 500000;
-    display: none; /* JS añade class "visible" */
-    flex-direction: column;
-    min-width: 220px;
-    background: rgba(1, 6, 16, 0.98);
-    border: 1px solid var(--cyan);
-    border-left: 3px solid var(--cyan);
-    box-shadow:
-        0 0 40px rgba(0, 0, 0, 0.8),
-        0 0 20px rgba(0, 242, 255, 0.12);
-    backdrop-filter: blur(8px);
-    overflow: hidden;
-    animation: ctx-appear 0.15s ease;
-}
-
-.context-menu.visible {
-    display: flex;
-}
-
-@keyframes ctx-appear {
-    from { opacity: 0; transform: scale(0.96) translateY(-4px); }
-    to   { opacity: 1; transform: scale(1)    translateY(0);    }
-}
-
-.context-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 14px;
-    border-bottom: 1px solid rgba(0, 242, 255, 0.12);
-    background: rgba(0, 242, 255, 0.04);
-}
-
-.context-header span:first-child {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: #fff;
-    letter-spacing: 1px;
-    font-weight: 800;
-    max-width: 150px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.ctx-tag {
-    font-size: 8px;
-    color: var(--orange);
-    letter-spacing: 2px;
-    border: 1px solid var(--orange);
-    padding: 2px 5px;
-}
-
-.context-button {
-    display: flex;
-    flex-direction: column;
-    padding: 6px;
-    gap: 4px;
-}
-
-.context-button button {
-    width: 100%;
-    background: transparent;
-    border: 1px solid transparent;
-    color: var(--cyan);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    padding: 10px 14px;
-    text-align: left;
-    cursor: pointer;
-    letter-spacing: 1px;
-    transition: background 0.15s, border-color 0.15s, padding-left 0.15s;
-    position: relative;
-}
-
-.context-button button::before {
-    content: "▶";
-    position: absolute;
-    left: 6px;
-    opacity: 0;
-    font-size: 8px;
-    transition: opacity 0.15s;
-    color: var(--cyan);
-}
-
-.context-button button:hover {
-    background: rgba(0, 242, 255, 0.07);
-    border-color: rgba(0, 242, 255, 0.2);
-    padding-left: 24px;
-}
-
-.context-button button:hover::before {
-    opacity: 0.6;
-}
-
-/*-----------------------------------------------------------------------------
- * STATS MODAL — ya tenés base en style.css, acá sólo los internos
- *----------------------------------------------------------------------------*/
-#statsModal {
-    display: none; /* JS controla esto */
-}
-
-#statsModal.visible {
-    display: flex;
-}
-
-#statsModalContent h3 {
-    color: var(--cyan);
-    font-family: var(--font-mono);
-    font-size: 13px;
-    letter-spacing: 3px;
-    border: none;
-    margin: 0;
-    padding: 0;
-}
-
-/* Inputs de stats generados por JS */
-#statsInputsContainer {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-top: 10px;
-}
-
-#statsInputsContainer label {
-    font-size: 9px;
-    color: var(--orange);
-    letter-spacing: 2px;
-    display: block;
-    margin-bottom: 3px;
-}
-
-#statsInputsContainer input {
-    margin: 0;
-}
-
-#statsModalImage {
-    max-height: 120px;
-    max-width: 100%;
-    object-fit: contain;
-    filter: drop-shadow(0 0 12px var(--cyan));
-}
-
-/*-----------------------------------------------------------------------------
- * MOBILE ACTION SHEET
- *----------------------------------------------------------------------------*/
-.mobile-sheet {
-    display: none; /* JS añade class "active" */
-    position: fixed;
-    inset: 0;
-    z-index: 1000000;
-}
-
-.mobile-sheet.active {
-    display: block;
-}
-
-.sheet-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(4px);
-}
-
-.sheet-content {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(1, 6, 14, 0.99);
-    border-top: 2px solid var(--cyan);
-    border-radius: 0;
-    padding: 20px 20px 36px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    box-shadow: 0 -20px 60px rgba(0, 242, 255, 0.1);
-    animation: sheet-rise 0.35s cubic-bezier(0.19, 1, 0.22, 1);
-}
-
-@keyframes sheet-rise {
-    from { transform: translateY(100%); }
-    to   { transform: translateY(0); }
-}
-
-.sheet-handle {
-    width: 36px;
-    height: 3px;
-    background: rgba(0, 242, 255, 0.3);
-    border-radius: 2px;
-    margin: 0 auto 12px;
-}
-
-.sheet-content button {
-    width: 100%;
-    background: rgba(0, 242, 255, 0.05);
-    border: 1px solid rgba(0, 242, 255, 0.2);
-    color: var(--cyan);
-    font-family: var(--font-mono);
-    font-size: 12px;
-    font-weight: 600;
-    padding: 15px;
-    cursor: pointer;
-    letter-spacing: 1.5px;
-    transition: background 0.2s, border-color 0.2s;
-}
-
-.sheet-content button:hover,
-.sheet-content button:active {
-    background: rgba(0, 242, 255, 0.12);
-    border-color: var(--cyan);
-}
-
-.sheet-content .btn-cancelar {
-    background: transparent;
-    border-color: rgba(0, 242, 255, 0.1);
-    color: rgba(0, 242, 255, 0.35);
-    letter-spacing: 3px;
-}
-
-/*-----------------------------------------------------------------------------
- * BAÚL & LORE MISC
- *----------------------------------------------------------------------------*/
-.import-baul-container {
-    margin-bottom: 14px;
-}
-
-.colBaul h2,
-#colNotas h2,
-#colInventario h2,
-#colBaul h2 {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    letter-spacing: 4px;
-    color: var(--cyan);
-    border-bottom: 1px solid rgba(0, 242, 255, 0.15);
-    padding-bottom: 10px;
-    margin-bottom: 14px;
+    --cyan:#00f2ff; --cyan-mid:rgba(0,242,255,0.5); --cyan-low:rgba(0,242,255,0.08);
+    --cyan-glow:rgba(0,242,255,0.25); --orange:#ff9d00; --orange-glow:rgba(255,157,0,0.35);
+    --red:#ff0202; --red-glow:rgba(255,2,2,0.4); --bg:#020205; --bg-panel:rgba(3,8,16,0.98);
+    --font-mono:'JetBrains Mono',monospace; --font-term:'Share Tech Mono',monospace; --font-body:'Courier Prime',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-user-drag:none;outline:none;}
+body{background-color:var(--bg);background-image:radial-gradient(ellipse at 50% 0%,rgba(0,242,255,0.04) 0%,transparent 65%),repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.18) 3px,rgba(0,0,0,0.18) 4px);color:var(--cyan);font-family:var(--font-body);display:flex;flex-direction:row;padding:20px;gap:20px;min-height:100vh;text-transform:uppercase;overflow-x:hidden;}
+::-webkit-scrollbar{width:4px;height:4px;}::-webkit-scrollbar-track{background:rgba(0,0,0,0.6);border:1px solid var(--cyan-low);}::-webkit-scrollbar-thumb{background:var(--cyan);box-shadow:0 0 8px var(--cyan);}
+#panelPersonajes{width:290px;flex-shrink:0;background:var(--bg-panel);padding:25px;border:1px solid var(--cyan);border-right:5px solid var(--cyan);height:fit-content;box-shadow:0 0 40px var(--cyan-glow),inset 0 0 30px rgba(0,0,0,0.4);position:relative;overflow:hidden;}
+#panelPersonajes::before{content:"USER AUTHENTICATED";position:absolute;top:6px;right:10px;font-size:8px;color:var(--cyan-mid);font-family:var(--font-term);letter-spacing:1.5px;}
+#panelPersonajes::after{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:0.6;}
+#panelPersonajes h3,.sectionTitle{margin-top:28px;margin-bottom:12px;font-size:11px;color:var(--orange);border-bottom:1px solid var(--orange);padding-bottom:6px;display:block;letter-spacing:3px;text-shadow:0 0 10px var(--orange-glow);}
+#panelPersonajes button{width:100%;margin-bottom:10px;padding:11px 14px;background:var(--cyan-low);border:1px solid rgba(0,242,255,0.2);color:var(--cyan);cursor:pointer;font-family:var(--font-mono);font-size:11px;font-weight:500;letter-spacing:1px;transition:all 0.25s ease;position:relative;overflow:hidden;}
+#panelPersonajes button:hover{background:rgba(0,242,255,0.12);border-color:var(--cyan);padding-left:20px;}
+#listaPersonajes button.selected{background:var(--orange);color:#000;font-weight:800;box-shadow:0 0 20px var(--orange-glow);border:1px solid rgba(255,255,255,0.4);}
+#mainArea{display:flex;flex-direction:column;gap:20px;flex-grow:1;}
+#pjHeader{display:flex;align-items:center;gap:25px;background:rgba(0,242,255,0.04);padding:20px;border:1px solid rgba(0,242,255,0.25);border-left:10px solid var(--cyan);box-shadow:0 0 30px rgba(0,0,0,0.4);}
+#pjFoto{width:90px;height:110px;object-fit:cover;border:2px solid var(--cyan);background:#000;box-shadow:0 0 20px var(--cyan-glow);}
+.inventoryColumn{background:rgba(3,8,18,0.95);padding:20px;border:1px solid rgba(0,242,255,0.15);position:relative;}
+.inventarioGrid{display:grid;grid-template-rows:repeat(2,115px);grid-auto-flow:column;grid-auto-columns:145px;gap:12px;background:#000205;border:1px solid rgba(0,242,255,0.3);padding:18px;overflow-x:auto;min-height:280px;box-shadow:inset 0 0 60px rgba(0,242,255,0.05);}
+.slot{width:100%;height:100%;background:rgba(0,242,255,0.015);border:1px solid rgba(0,242,255,0.08);position:relative;transition:border-color 0.2s,background 0.2s;}
+.slot:hover{border-color:rgba(255,255,255,0.3);background:rgba(0,242,255,0.04);}
+.item{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;padding:10px;background:linear-gradient(145deg,rgba(0,35,55,0.95) 0%,rgba(0,5,12,1) 100%);border:1px solid var(--cyan);position:absolute;top:0;left:0;cursor:pointer;transition:box-shadow 0.2s,border-color 0.2s;}
+.item:hover{box-shadow:0 0 20px var(--cyan-glow);border-color:#fff;}
+
+/* ═══ ÍTEM SELECCIONADO EN MÓVIL ═══ */
+.item.selected-mobile{
+    border-color:var(--orange) !important;
+    box-shadow:0 0 28px var(--orange-glow),inset 0 0 14px rgba(255,157,0,0.12) !important;
+    background:linear-gradient(145deg,rgba(50,25,0,0.95) 0%,rgba(20,8,0,1) 100%) !important;
+}
+
+.item img{width:100%;height:68px;object-fit:contain;pointer-events:none;margin-bottom:6px;mix-blend-mode:screen;filter:drop-shadow(0 0 6px var(--cyan));}
+.item span{font-size:10px;text-align:center;color:var(--cyan);font-family:var(--font-term);letter-spacing:0.5px;line-height:1.3;}
+
+/* ═══════════════════════════════════════════════════════
+   BARRA DE ACCIÓN MÓVIL
+   Toque simple en un ítem → se selecciona (naranja) →
+   aparece esta barra con los botones de acción.
+   En desktop está oculta con CSS.
+   ═══════════════════════════════════════════════════════ */
+#mobileItemActionBar{
+    position:fixed; bottom:0; left:0; right:0; z-index:999999;
+    background:rgba(1,5,12,0.99);
+    border-top:2px solid var(--orange);
+    padding:12px 14px 22px;
+    box-shadow:0 -6px 40px rgba(255,157,0,0.2);
+    transform:translateY(100%);
+    transition:transform 0.28s cubic-bezier(0.19,1,0.22,1);
+    /* Oculto en desktop */
+    display:none;
+}
+@media(max-width:900px){
+    #mobileItemActionBar{display:block;}
+    body{padding-bottom:16px;}
+}
+#mobileItemActionBar.visible{transform:translateY(0);}
+.bar-item-name{font-family:var(--font-mono);font-size:11px;color:var(--orange);letter-spacing:2px;margin-bottom:10px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bar-buttons{display:flex;gap:7px;}
+.bar-buttons button{flex:1;min-width:0;background:rgba(0,242,255,0.05);border:1px solid rgba(0,242,255,0.3);color:var(--cyan);font-family:var(--font-mono);font-size:10px;font-weight:700;padding:13px 4px;cursor:pointer;letter-spacing:0.5px;-webkit-tap-highlight-color:transparent;transition:background 0.15s;}
+.bar-buttons button:active{background:rgba(0,242,255,0.2);}
+.bar-buttons .btn-danger{color:var(--red);border-color:rgba(255,2,2,0.4);background:rgba(255,2,2,0.06);}
+.bar-buttons .btn-danger:active{background:rgba(255,2,2,0.2);}
+.bar-buttons .btn-cancel{color:rgba(0,242,255,0.35);border-color:rgba(0,242,255,0.1);background:transparent;}
+
+.contenedor-lore-principal{display:grid;grid-template-columns:380px 1fr;gap:18px;height:580px;margin-top:12px;}
+.lista-lateral-notas{background:var(--bg-panel);border:1px solid rgba(0,242,255,0.12);padding:14px;overflow-y:auto;}
+.visor-datos-nota{background:rgba(0,4,10,0.98);border:1px solid var(--cyan);padding:25px;display:flex;flex-direction:column;position:relative;}
+.visor-datos-nota::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--cyan),transparent);}
+.label-file,.label-file2,.btn-import-baul{display:block;background:rgba(0,242,255,0.07);border:1px solid rgba(0,242,255,0.4);color:var(--cyan);font-size:10px;padding:13px;text-align:center;cursor:pointer;transition:all 0.2s ease;font-weight:bold;margin:10px 0;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:1.5px;}
+.label-file:hover,.label-file2:hover,.btn-import-baul:hover{background:var(--cyan);color:#000;box-shadow:0 0 25px var(--cyan-glow);}
+.label-file3{display:block;background:rgba(255,2,2,0.06);border:1px solid rgba(255,2,2,0.4);color:var(--red);padding:13px;text-align:center;font-size:10px;font-family:var(--font-mono);letter-spacing:1.5px;cursor:pointer;margin-bottom:80px;transition:all 0.2s ease;}
+.label-file3:hover{background:var(--red);color:#fff;}
+input[type="text"],input[type="number"],textarea,select{width:100%;background:rgba(0,4,10,0.9);border:1px solid rgba(0,242,255,0.25);color:var(--cyan);font-family:var(--font-mono);font-size:11px;padding:10px 12px;margin-top:4px;outline:none;text-transform:none;transition:border-color 0.2s,box-shadow 0.2s;-webkit-appearance:none;appearance:none;}
+input::placeholder,textarea::placeholder{color:rgba(0,242,255,0.2);letter-spacing:1px;}
+input:focus,textarea:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 12px rgba(0,242,255,0.12);}
+select option{background:#01060e;color:var(--cyan);}
+textarea{resize:vertical;min-height:80px;line-height:1.6;}
+input[type="file"]{display:none;}
+#statsModal{position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:2000000;display:none;justify-content:center;align-items:center;backdrop-filter:blur(8px);}
+#statsModalContent{background:#01040a;border:2px solid var(--cyan);padding:40px;width:95%;max-width:640px;max-height:90vh;overflow-y:auto;box-shadow:0 0 80px var(--cyan-glow);position:relative;background-image:repeating-linear-gradient(0deg,transparent,transparent 19px,rgba(0,242,255,0.025) 19px,rgba(0,242,255,0.025) 20px);}
+#statsInputsContainer{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+#statsInputsContainer label{font-size:9px;color:var(--orange);letter-spacing:2px;display:block;margin-bottom:3px;}
+#statsInputsContainer input{margin:0;}
+#statsModalImage{max-height:120px;max-width:100%;object-fit:contain;filter:drop-shadow(0 0 12px var(--cyan));}
+#statsModalContent h3{color:var(--cyan);font-family:var(--font-mono);font-size:13px;letter-spacing:3px;border:none;margin:0;padding:0;}
+.context-menu{position:fixed;z-index:500000;display:none;flex-direction:column;min-width:220px;background:rgba(1,6,16,0.98);border:1px solid var(--cyan);border-left:3px solid var(--cyan);box-shadow:0 0 40px rgba(0,0,0,0.8),0 0 20px rgba(0,242,255,0.12);backdrop-filter:blur(8px);overflow:hidden;}
+.context-header{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid rgba(0,242,255,0.12);background:rgba(0,242,255,0.04);}
+.context-header span:first-child{font-family:var(--font-mono);font-size:11px;color:#fff;letter-spacing:1px;font-weight:800;}
+.ctx-tag{font-size:8px;color:var(--orange);letter-spacing:2px;border:1px solid var(--orange);padding:2px 5px;}
+.context-button{display:flex;flex-direction:column;padding:6px;gap:4px;}
+.context-button button{width:100%;background:transparent;border:1px solid transparent;color:var(--cyan);font-family:var(--font-mono);font-size:11px;padding:10px 14px;text-align:left;cursor:pointer;letter-spacing:1px;transition:background 0.15s,padding-left 0.15s;}
+.context-button button:hover{background:rgba(0,242,255,0.07);border-color:rgba(0,242,255,0.2);padding-left:24px;}
+#pda-boot-screen{position:fixed;inset:0;background:#000;z-index:9999999;display:flex;justify-content:center;align-items:center;flex-direction:column;}
+.boot-logo{width:260px;filter:drop-shadow(0 0 30px var(--cyan)) drop-shadow(0 0 60px rgba(0,242,255,0.3));margin-bottom:40px;}
+.boot-bar{width:340px;height:3px;background:rgba(0,242,255,0.06);border:1px solid rgba(0,242,255,0.3);position:relative;overflow:hidden;}
+.boot-progress{height:100%;width:0%;background:var(--cyan);box-shadow:0 0 15px var(--cyan);transition:width 0.1s linear;}
+.scanline-boot{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.25) 2px,rgba(0,0,0,0.25) 4px);pointer-events:none;}
+.boot-content{display:flex;flex-direction:column;align-items:center;gap:30px;z-index:1;}
+.boot-text-container{display:flex;flex-direction:column;gap:6px;align-items:flex-start;min-width:340px;}
+.boot-text{font-family:var(--font-term);font-size:12px;color:var(--cyan);letter-spacing:1.5px;opacity:0;animation:boot-line 0.3s ease forwards;}
+.boot-text:nth-child(1){animation-delay:0.3s;}.boot-text:nth-child(2){animation-delay:0.8s;}.boot-text:nth-child(3){animation-delay:1.2s;}.boot-text:nth-child(4){animation-delay:1.6s;}
+@keyframes boot-line{from{opacity:0;transform:translateX(-8px);}to{opacity:1;transform:translateX(0);}}
+.zona-multimedia-vertical{width:200px;display:flex;flex-direction:column;gap:12px;flex-shrink:0;}
+.ImagenNota{width:100%;height:200px;object-fit:cover;border:1px solid var(--cyan);background:#000;box-shadow:0 0 20px var(--cyan-glow);}
+#noteContent{background:rgba(0,4,8,1);border:1px solid rgba(0,242,255,0.3);color:var(--cyan);font-family:var(--font-mono);font-size:12px;line-height:1.7;text-transform:none;padding:20px;resize:none;}
+.pda-data-row{display:flex;justify-content:space-between;border-bottom:1px solid var(--cyan-low);padding:5px 0;font-size:10px;letter-spacing:0.5px;}
+.infoRow{font-family:var(--font-term);font-size:10px;color:rgba(0,242,255,0.5);letter-spacing:2px;margin-top:12px;margin-bottom:2px;}
+.import-baul-container{margin-bottom:14px;}
+#colNotas h2,#colInventario h2,#colBaul h2{font-family:var(--font-mono);font-size:12px;letter-spacing:4px;color:var(--cyan);border-bottom:1px solid rgba(0,242,255,0.15);padding-bottom:10px;margin-bottom:14px;}
+.botones-lore-footer button{font-family:var(--font-mono);font-size:11px;letter-spacing:1.5px;}
+.cuerpo-nota-integrado{display:flex;gap:16px;flex:1;margin-top:14px;overflow:hidden;}
+.controles-carga{display:flex;flex-direction:column;gap:8px;}
+#panelAddItem h3{color:var(--orange);font-size:11px;letter-spacing:2px;border:none;margin-bottom:16px;}
+@keyframes flicker{0%,95%,100%{opacity:1;}96%{opacity:0.4;}97%{opacity:1;}98%{opacity:0.2;}}
+@media(max-width:900px){
+    body{flex-direction:column;padding:10px;}
+    #panelPersonajes{width:100%;order:2;border-right:1px solid var(--cyan);border-top:4px solid var(--cyan);}
+    #mainArea{width:100%;order:1;}
+    .inventarioGrid{grid-template-rows:auto;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));grid-auto-flow:row;max-height:480px;}
+    .contenedor-lore-principal{grid-template-columns:1fr;height:auto;}
+    #pjHeader{flex-direction:column;text-align:center;}
 }
-
-.botones-lore-footer button {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 1.5px;
-}
-
-/*-----------------------------------------------------------------------------
- * INFOROW (labels de admin panel)
- *----------------------------------------------------------------------------*/
-.infoRow {
-    font-family: var(--font-term);
-    font-size: 10px;
-    color: rgba(0, 242, 255, 0.5);
-    letter-spacing: 2px;
-    margin-top: 12px;
-    margin-bottom: 2px;
-}
-
-/*-----------------------------------------------------------------------------
- * CUERPO NOTA — layout interno del visor
- *----------------------------------------------------------------------------*/
-.cuerpo-nota-integrado {
-    display: flex;
-    gap: 16px;
-    flex: 1;
-    margin-top: 14px;
-    overflow: hidden;
-}
-
-.zona-imagen {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.controles-carga {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.controles-carga .label-file {
-    margin: 0;
-    font-size: 10px;
-    padding: 10px;
-}
-
-/*-----------------------------------------------------------------------------
- * PANEL ADD ITEM — select y botones coherentes
- *----------------------------------------------------------------------------*/
-#panelAddItem h3 {
-    color: var(--orange);
-    font-size: 11px;
-    letter-spacing: 2px;
-    border: none;
-    margin-bottom: 16px;
-}
-
-#panelAddItem select {
-    color: var(--cyan);
-    border-color: rgba(0, 242, 255, 0.2);
-}
-
-/*-----------------------------------------------------------------------------
- * SCANLINE overlay (boot screen)
- *----------------------------------------------------------------------------*/
-.scanline-boot {
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(0, 0, 0, 0.25) 2px,
-        rgba(0, 0, 0, 0.25) 4px
-    );
-    pointer-events: none;
-}
-
-.boot-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 30px;
-    z-index: 1;
-}
-
-.boot-text-container {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    align-items: flex-start;
-    min-width: 340px;
-}
-
-.boot-text {
-    font-family: var(--font-term);
-    font-size: 12px;
-    color: var(--cyan);
-    letter-spacing: 1.5px;
-    opacity: 0;
-    animation: boot-line 0.3s ease forwards;
-}
-
-.boot-text:nth-child(1) { animation-delay: 0.3s; }
-.boot-text:nth-child(2) { animation-delay: 0.8s; }
-.boot-text:nth-child(3) { animation-delay: 1.2s; }
-.boot-text:nth-child(4) { animation-delay: 1.6s; }
-
-@keyframes boot-line {
-    from { opacity: 0; transform: translateX(-8px); }
-    to   { opacity: 1; transform: translateX(0); }
-}
-
-/* EOF — ADDENDUM */
-
-/* EOF — NEOMUTATION PDA OS */
 </style>
-
 </head>
 <body>
 
-<!-- ============================================================
-     NEOMUTATION PDA — BODY
-     Context menu (desktop, right-click) + mobile action sheet
-     ============================================================ -->
-
-<!-- ══════════════════════════════════════════════════════════
-     BOOT SCREEN (fullscreen, dismissed by JS)
-     ══════════════════════════════════════════════════════════ -->
 <div id="pda-boot-screen">
     <div class="boot-content">
         <img src="descargar (1).png" alt="NEOMUTATION LOGO" class="boot-logo">
@@ -1134,1209 +148,533 @@ input[type="file"] {
     <div class="scanline-boot"></div>
 </div>
 
-<!-- ══════════════════════════════════════════════════════════
-     PANEL PERSONAJES (sidebar izquierdo)
-     ══════════════════════════════════════════════════════════ -->
 <div id="panelPersonajes">
-
     <h3>Personajes</h3>
     <div id="listaPersonajes"></div>
-
     <div class="sectionTitle">Nuevo Personaje</div>
-
     <input type="text"   id="nuevoNombre" class="label-file"  placeholder="Nombre" />
     <input type="number" id="nuevoSlots"  class="label-file2" placeholder="Slots (ej: 6)" />
-
     <label for="nuevaFoto" class="label-file3">📷 Elegir imagen</label>
-    <input type="file"   id="nuevaFoto" accept="image/*">
-
+    <input type="file" id="nuevaFoto" accept="image/*">
     <button id="btnCrearPJ">Crear personaje</button>
-
     <div class="sectionTitle">Acciones</div>
-
-    <button id="btnEliminarPJ" style="background:rgba(170,68,68,0.15); border-color:#c66;" disabled>
-        Eliminar personaje
-    </button>
-
-    <hr style="border:none; border-top:1px solid rgba(0,242,255,0.1); margin:18px 0;">
-
+    <button id="btnEliminarPJ" style="background:rgba(170,68,68,0.15);border-color:#c66;" disabled>Eliminar personaje</button>
+    <hr style="border:none;border-top:1px solid rgba(0,242,255,0.1);margin:18px 0;">
     <div class="sectionTitle">Inventario</div>
     <button id="btnExportData">📤 Exportar (.json)</button>
-    <label for="importFile">
-        <button id="btnImportTrigger" style="width:100%; margin-top:8px;">📥 Importar (.json)</button>
-    </label>
+    <label for="importFile"><button id="btnImportTrigger" style="width:100%;margin-top:8px;">📥 Importar (.json)</button></label>
     <input type="file" id="importFile" accept=".json" style="display:none;">
-
     <div class="sectionTitle">Notas</div>
     <button id="btnExportNotas">📤 Exportar nota (.notes)</button>
-    <label for="importNotesFile">
-        <button id="btnImportNotesTrigger" style="width:100%; margin-top:8px;">📥 Importar nota</button>
-    </label>
+    <label for="importNotesFile"><button id="btnImportNotesTrigger" style="width:100%;margin-top:8px;">📥 Importar nota</button></label>
     <input type="file" id="importNotesFile" accept=".notes" style="display:none;">
-
-    <!-- Baúl import (oculto, llamado desde el panel baúl) -->
     <input type="file" id="importBaulFile" accept=".json" onchange="handleBaulImport(event)" style="display:none;">
-
     <div class="infoRow" style="margin-top:14px;">
-        <small style="color:rgba(0,242,255,0.4); font-size:9px;">Clic para habilitar música</small>
-        <button id="btnToggleVolume" style="width:auto; padding:4px 10px; margin:0; background:rgba(0,0,0,0.4); border-color:rgba(0,242,255,0.2); font-size:15px;">🔇</button>
+        <small style="color:rgba(0,242,255,0.4);font-size:9px;">Clic para habilitar música</small>
+        <button id="btnToggleVolume" style="width:auto;padding:4px 10px;margin:0;background:rgba(0,0,0,0.4);border-color:rgba(0,242,255,0.2);font-size:15px;">🔇</button>
+    </div>
+</div>
+
+<div id="mainArea">
+    <div class="inventoryColumn" id="colInventario">
+        <div id="pjHeader" style="display:none;"><img id="pjFoto" src="" alt="Foto"><h2 id="nombrePJ">Seleccioná un personaje</h2></div>
+        <div id="statusPanel" style="display:none;margin-top:12px;">
+            <div class="pda-data-row" style="margin-bottom:6px;"><span>ESTADO DE SALUD</span><span id="healthStatusText" style="font-weight:800;color:#7f7;text-shadow:0 0 6px #0f0;">FINE</span></div>
+            <div style="height:6px;background:rgba(255,255,255,0.06);border:1px solid rgba(0,242,255,0.15);overflow:hidden;margin-bottom:10px;"><div id="healthBar" style="width:100%;height:100%;background:#0c0;transition:all 0.4s;"></div></div>
+            <div style="display:flex;gap:8px;">
+                <button onclick="changeHealthStatus('fine')"    style="flex:1;background:rgba(0,136,0,0.2);border-color:#0c0;color:#0c0;">FINE</button>
+                <button onclick="changeHealthStatus('caution')" style="flex:1;background:rgba(136,136,0,0.2);border-color:#cc0;color:#cc0;">CAUTION</button>
+                <button onclick="changeHealthStatus('danger')"  style="flex:1;background:rgba(136,0,0,0.2);border-color:#c00;color:#c00;">DANGER</button>
+            </div>
+        </div>
+        <div id="inventarioPlaceholder" style="text-align:center;padding:60px 20px;color:rgba(0,242,255,0.25);"><div style="font-size:11px;letter-spacing:4px;">SELECCIONÁ UN PERSONAJE</div></div>
+        <div id="inventarioGrid" class="inventarioGrid" style="--cols:8;display:none;"></div>
+        <div id="panelAddItem" style="margin-top:20px;display:none;border-top:2px solid var(--orange);padding-top:18px;">
+            <h3>[ MODO ADMIN: REGISTRO DE ÍTEMS ]</h3>
+            <div class="infoRow">DENOMINACIÓN:</div><input type="text" id="itemNombre" placeholder="Nombre del ítem..." />
+            <div class="infoRow">CATEGORÍA:</div>
+            <select id="itemTypeSelect"><option value="generic">Ítem Genérico</option><option value="firearm">Arma de Fuego</option><option value="melee">Arma C/C</option></select>
+            <div class="infoRow">DESCRIPCIÓN:</div><input type="text" id="itemDescriptionInitial" placeholder="Ej: Calibre 9mm" />
+            <div style="display:flex;gap:12px;margin-top:10px;">
+                <div style="flex:1;"><div class="infoRow">SLOTS:</div><input type="number" id="itemSlots" placeholder="Ej: 2" min="1" value="1" /></div>
+                <div style="flex:1;"><div class="infoRow">STOCK:</div><input type="number" id="itemCantidad" placeholder="Ej: 15" min="1" value="1" /></div>
+            </div>
+            <div class="infoRow" style="margin-top:14px;">TEXTURA VISUAL:</div>
+            <label for="itemImagen" class="label-file2" id="label-foto-item" style="border-color:var(--orange);color:var(--orange);background:rgba(255,157,0,0.05);">📂 SELECCIONAR IMAGEN</label>
+            <input type="file" id="itemImagen" accept="image/*" onchange="actualizarTextoArchivo(this)" style="display:none;">
+            <button id="btnAgregarItem" style="width:100%;margin-top:12px;background:var(--orange);color:#000;font-weight:800;border:none;">CONFIRMAR E IMPORTAR</button>
+            <div id="mensajeEspacio" style="color:var(--red);margin-top:8px;font-size:10px;letter-spacing:1px;"></div>
+        </div>
     </div>
 
-</div><!-- /#panelPersonajes -->
-
-
-<!-- ══════════════════════════════════════════════════════════
-     MAIN AREA
-     ══════════════════════════════════════════════════════════ -->
-<div id="mainArea">
-
-    <!-- ── INVENTARIO ────────────────────────────────────── -->
-    <div class="inventoryColumn" id="colInventario">
-
-        <!-- Header personaje -->
-        <div id="pjHeader" style="display:none;">
-            <img id="pjFoto" src="" alt="Foto de Personaje">
-            <h2 id="nombrePJ">Seleccioná un personaje</h2>
-        </div>
-
-        <!-- Panel de salud -->
-        <div id="statusPanel" style="display:none; margin-top:12px;">
-            <div class="pda-data-row" style="margin-bottom:6px;">
-                <span>ESTADO DE SALUD</span>
-                <span id="healthStatusText" style="font-weight:800; color:#7f7; text-shadow:0 0 6px #0f0;">FINE</span>
-            </div>
-            <div style="height:6px; background:rgba(255,255,255,0.06); border:1px solid rgba(0,242,255,0.15); overflow:hidden; margin-bottom:10px;">
-                <div id="healthBar" style="width:100%; height:100%; background:#0c0; transition:all 0.4s;"></div>
-            </div>
-            <div style="display:flex; gap:8px;">
-                <button onclick="changeHealthStatus('fine')"    style="flex:1; background:rgba(0,136,0,0.2);   border-color:#0c0; color:#0c0;">FINE</button>
-                <button onclick="changeHealthStatus('caution')" style="flex:1; background:rgba(136,136,0,0.2); border-color:#cc0; color:#cc0;">CAUTION</button>
-                <button onclick="changeHealthStatus('danger')"  style="flex:1; background:rgba(136,0,0,0.2);   border-color:#c00; color:#c00;">DANGER</button>
-            </div>
-        </div>
-
-        <!-- Placeholder vacío -->
-        <div id="inventarioPlaceholder" style="text-align:center; padding:60px 20px; color:rgba(0,242,255,0.25);">
-            <div style="font-size:11px; letter-spacing:4px;">SELECCIONÁ UN PERSONAJE</div>
-        </div>
-
-        <!-- Grid de inventario -->
-        <div id="inventarioGrid" class="inventarioGrid" style="--cols:8; display:none;"></div>
-
-        <!-- Panel añadir ítem (admin) -->
-        <div id="panelAddItem" style="margin-top:20px; display:none; border-top:2px solid var(--orange); padding-top:18px;">
-            <h3>[ MODO ADMIN: REGISTRO DE ÍTEMS ]</h3>
-
-            <div class="infoRow">DENOMINACIÓN:</div>
-            <input type="text" id="itemNombre" placeholder="Nombre del ítem..." />
-
-            <div class="infoRow">CATEGORÍA:</div>
-            <select id="itemTypeSelect">
-                <option value="generic">Ítem Genérico</option>
-                <option value="firearm">Arma de Fuego</option>
-                <option value="melee">Arma C/C</option>
-            </select>
-
-            <div class="infoRow">DESCRIPCIÓN:</div>
-            <input type="text" id="itemDescriptionInitial" placeholder="Ej: Calibre 9mm" />
-
-            <div style="display:flex; gap:12px; margin-top:10px;">
-                <div style="flex:1;">
-                    <div class="infoRow">SLOTS:</div>
-                    <input type="number" id="itemSlots" placeholder="Ej: 2" min="1" value="1" />
-                </div>
-                <div style="flex:1;">
-                    <div class="infoRow">STOCK:</div>
-                    <input type="number" id="itemCantidad" placeholder="Ej: 15" min="1" value="1" />
-                </div>
-            </div>
-
-            <div class="infoRow" style="margin-top:14px;">TEXTURA VISUAL:</div>
-            <label for="itemImagen" class="label-file2" id="label-foto-item"
-                   style="border-color:var(--orange); color:var(--orange); background:rgba(255,157,0,0.05);">
-                📂 SELECCIONAR IMAGEN
-            </label>
-            <input type="file" id="itemImagen" accept="image/*" onchange="actualizarTextoArchivo(this)" style="display:none;">
-
-            <button id="btnAgregarItem"
-                    style="width:100%; margin-top:12px; background:var(--orange); color:#000; font-weight:800; border:none;">
-                CONFIRMAR E IMPORTAR
-            </button>
-
-            <div id="mensajeEspacio" style="color:var(--red); margin-top:8px; font-size:10px; letter-spacing:1px;"></div>
-        </div>
-
-    </div><!-- /#colInventario -->
-
-
-    <!-- ── BAÚL ──────────────────────────────────────────── -->
     <div class="inventoryColumn" id="colBaul">
-
         <h2>Baúl del Personaje</h2>
-
-        <div class="import-baul-container">
-            <label for="importBaulFile" class="btn-import-baul">📥 IMPORTAR COMPRA AL BAÚL</label>
-        </div>
-
-        <div class="baulLabel" style="display:flex; align-items:center; gap:10px; margin:12px 0;">
-            <span style="font-size:10px; color:rgba(0,242,255,0.5); letter-spacing:2px;">SLOTS</span>
-            <input type="number" id="baulSlotsInput" value="15" min="2" class="label-file2" style="width:70px; margin:0;">
+        <div class="import-baul-container"><label for="importBaulFile" class="btn-import-baul">📥 IMPORTAR COMPRA AL BAÚL</label></div>
+        <div style="display:flex;align-items:center;gap:10px;margin:12px 0;">
+            <span style="font-size:10px;color:rgba(0,242,255,0.5);letter-spacing:2px;">SLOTS</span>
+            <input type="number" id="baulSlotsInput" value="15" min="2" class="label-file2" style="width:70px;margin:0;">
             <button id="btnActualizarBaul" class="label-file">Actualizar</button>
         </div>
-
         <div id="baulGrid" class="inventarioGrid" style="--cols:5;"></div>
+        <p style="margin-top:10px;color:rgba(0,242,255,0.3);font-size:10px;letter-spacing:1px;">Mové ítems entre el inventario y el baúl.</p>
+    </div>
 
-        <p style="margin-top:10px; color:rgba(0,242,255,0.3); font-size:10px; letter-spacing:1px;">
-            Mové ítems entre el inventario y el baúl.
-        </p>
-
-    </div><!-- /#colBaul -->
-
-
-    <!-- ── NOTAS / LORE ──────────────────────────────────── -->
     <div id="colNotas">
-
         <h2>Archivo de Datos</h2>
-
         <div class="contenedor-lore-principal">
-
-            <!-- Lista lateral -->
-            <div class="lista-lateral-notas">
-                <h3>Registros</h3>
-                <div id="notasList" class="label-file"></div>
-            </div>
-
-            <!-- Visor de nota -->
+            <div class="lista-lateral-notas"><h3>Registros</h3><div id="notasList" class="label-file"></div></div>
             <div class="visor-datos-nota">
                 <input type="text" id="noteTitleInput" class="label-file" placeholder="ID del Registro..." />
-
-                <div class="cuerpo-nota-integrado" style="display:flex; gap:16px; flex:1; margin-top:14px; overflow:hidden;">
-
-                    <!-- Zona multimedia -->
+                <div class="cuerpo-nota-integrado">
                     <div class="zona-multimedia-vertical">
                         <img id="noteImagePreview" src="" class="ImagenNota" alt="">
                         <audio id="noteAudioPlayer" controls style="display:none;"></audio>
-
-                        <div class="controles-carga" style="display:flex; flex-direction:column; gap:8px;">
+                        <div class="controles-carga">
                             <label for="noteImageUpload" class="label-file" style="margin:0;">Cargar Imagen</label>
                             <input type="file" id="noteImageUpload" accept="image/*" style="display:none;">
-
                         </div>
                     </div>
-
-                    <!-- Textarea -->
                     <textarea id="noteContent" placeholder="Esperando datos..." style="flex:1;"></textarea>
-
                 </div>
             </div>
-
         </div>
-
-        <div class="botones-lore-footer" style="display:flex; gap:12px; margin-top:14px;">
+        <div class="botones-lore-footer" style="display:flex;gap:12px;margin-top:14px;">
             <button id="btnNewNote" class="label-file">Nuevo Registro</button>
             <button id="btnSaveNote" class="label-file">Sincronizar</button>
-            <button id="btnDeleteNote" style="color:var(--red); border-color:var(--red); background:rgba(255,2,2,0.06);">Purgar</button>
+            <button id="btnDeleteNote" style="color:var(--red);border-color:var(--red);background:rgba(255,2,2,0.06);">Purgar</button>
         </div>
-
-    </div><!-- /#colNotas -->
-
-</div><!-- /#mainArea -->
-
-
-<!-- ══════════════════════════════════════════════════════════
-     CONTEXT MENU — desktop (right-click sobre ítem)
-     ══════════════════════════════════════════════════════════ -->
-<div id="contextMenu" class="context-menu" role="menu" aria-hidden="true">
-    <div class="context-header">
-        <span id="ctxItemName">—</span>
-        <span class="ctx-tag">OBJETO</span>
     </div>
+</div>
+
+<!-- CONTEXT MENU — solo desktop -->
+<div id="contextMenu" class="context-menu">
+    <div class="context-header"><span id="ctxItemName">—</span><span class="ctx-tag">OBJETO</span></div>
     <div class="context-button">
         <button id="ctxViewStats">📊 Ver / Mejorar Stats</button>
         <button id="ctxMoveToBaul">📦 Mover al baúl</button>
         <button id="ctxMoveToInv">🔄 Mover al inventario</button>
-        <button id="ctxDelete"   style="color:var(--red); border-color:var(--red);">🗑 Eliminar</button>
-        <button id="ctxClose"    style="color:rgba(0,242,255,0.4); border-color:rgba(0,242,255,0.15);">✕ Cancelar</button>
+        <button id="ctxDelete" style="color:var(--red);">🗑 Eliminar</button>
+        <button id="ctxClose"  style="color:rgba(0,242,255,0.4);">✕ Cancelar</button>
     </div>
 </div>
 
-
-<!-- ══════════════════════════════════════════════════════════
-     STATS MODAL — se abre desde el context menu / action sheet
-     ══════════════════════════════════════════════════════════ -->
+<!-- STATS MODAL -->
 <div id="statsModal">
     <div id="statsModalContent">
-
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
-            <h3 id="statsModalTitle" style="color:var(--cyan); letter-spacing:3px;">STATS DEL ÍTEM</h3>
-            <button id="btnCloseStats" style="width:auto; padding:4px 12px; margin:0; font-size:11px;">✕</button>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;">
+            <h3 id="statsModalTitle">STATS DEL ÍTEM</h3>
+            <button id="btnCloseStats" style="width:auto;padding:4px 12px;margin:0;font-size:11px;">✕</button>
         </div>
-
-        <div id="statsModalImageContainer" style="text-align:center; margin-bottom:20px;">
-            <img id="statsModalImage" src="" alt="Imagen del Ítem"
-                 style="max-height:120px; object-fit:contain; filter:drop-shadow(0 0 12px var(--cyan));">
-        </div>
-
+        <div style="text-align:center;margin-bottom:20px;"><img id="statsModalImage" src="" alt=""></div>
         <div id="statsInputsContainer"></div>
-
         <div class="sectionTitle" style="margin-top:20px;">Descripción</div>
-        <textarea id="statsModalDescription"
-                  placeholder="Añadí o editá una descripción detallada..."
-                  style="width:100%; min-height:100px; margin-top:8px;"></textarea>
-
-        <div id="statsModalButtons" style="display:flex; gap:12px; margin-top:20px;">
-            <button id="btnSaveStats" style="flex:1; background:var(--cyan); color:#000; font-weight:800; border:none;">
-                Guardar Cambios
-            </button>
+        <textarea id="statsModalDescription" placeholder="Añadí o editá una descripción..." style="width:100%;min-height:100px;margin-top:8px;"></textarea>
+        <div style="display:flex;gap:12px;margin-top:20px;">
+            <button id="btnSaveStats" style="flex:1;background:var(--cyan);color:#000;font-weight:800;border:none;">Guardar Cambios</button>
         </div>
-
     </div>
 </div>
 
-
-<!-- ══════════════════════════════════════════════════════════
-     MOBILE ACTION SHEET — touch / long-press sobre ítem
-     ══════════════════════════════════════════════════════════ -->
-<div id="mobileActionSheet" class="mobile-sheet">
-    <div class="sheet-overlay" onclick="cerrarPanelMovil()"></div>
-    <div class="sheet-content">
-        <div class="sheet-handle"></div>
-        <div id="sheetItemTitle" style="color:var(--cyan); font-weight:800; margin-bottom:18px; letter-spacing:2px;">
-            Opciones de Equipo
-        </div>
-        <button onclick="abrirModalStats(itemSeleccionadoGlobal); cerrarPanelMovil();">📊 VER / MEJORAR STATS</button>
-        <button onclick="accionMoverAlBaul(); cerrarPanelMovil();">📦 MOVER AL BAÚL</button>
-        <button onclick="accionEliminar(); cerrarPanelMovil();"
-                style="color:var(--red); border-color:var(--red); background:rgba(255,2,2,0.08);">
-            🗑 ELIMINAR OBJETO
-        </button>
-        <button onclick="cerrarPanelMovil()" class="btn-cancelar"
-                style="margin-top:8px; color:rgba(0,242,255,0.4); border-color:rgba(0,242,255,0.15);">
-            CANCELAR
-        </button>
+<!-- ═══════════════════════════════════════════════════════════
+     BARRA DE ACCIÓN MÓVIL
+     Toque simple en ítem → resaltado naranja + esta barra sube.
+     Botones directos, sin menú contextual, sin long press.
+     ═══════════════════════════════════════════════════════════ -->
+<div id="mobileItemActionBar">
+    <div class="bar-item-name" id="barItemName">— OBJETO —</div>
+    <div class="bar-buttons">
+        <button id="barBtnStats"    onclick="barAccionStats()">📊 STATS</button>
+        <button id="barBtnMover"    onclick="barAccionMover()">📦 MOVER</button>
+        <button id="barBtnEliminar" class="btn-danger" onclick="barAccionEliminar()">🗑 BORRAR</button>
+        <button                     class="btn-cancel" onclick="deseleccionarItem()">✕ CANCELAR</button>
     </div>
 </div>
 
-
-<!-- ══════════════════════════════════════════════════════════
-     AUDIO
-     ══════════════════════════════════════════════════════════ -->
-<audio id="bgm" loop>
-    <source src="Untitled (1).mp3" type="audio/mpeg">
-</audio>
-<audio id="sndMove">
-    <source src="UI Sounds_ Futuristic sound effects example (mp3cut.net), cambiarpj,etc.mp3" type="audio/wav">
-</audio>
-<audio id="sndSelect">
-    <source src="UI Sounds_ Futuristic sound effects example (mp3cut.net), cambiarpj,etc.mp3" type="audio/wav">
-</audio>
-<audio id="sndPickup">
-    <source src="UI Sounds_ Futuristic sound effects example (mp3cut.net), cambiarpj,etc.mp3" type="audio/mpeg">
-</audio>
+<audio id="bgm"      loop><source src="Untitled (1).mp3" type="audio/mpeg"></audio>
+<audio id="sndMove"      ><source src="UI Sounds_ Futuristic sound effects example (mp3cut.net), cambiarpj,etc.mp3" type="audio/wav"></audio>
+<audio id="sndSelect"    ><source src="UI Sounds_ Futuristic sound effects example (mp3cut.net), cambiarpj,etc.mp3" type="audio/wav"></audio>
+<audio id="sndPickup"    ><source src="UI Sounds_ Futuristic sound effects example (mp3cut.net), cambiarpj,etc.mp3" type="audio/mpeg"></audio>
 
 <script>
-
+/* BOOT */
 window.onload = () => {
-    const bootScreen = document.getElementById('pda-boot-screen');
-    
-    // Esperamos 3.5 segundos (lo que dura la barra de carga)
+    const boot = document.getElementById('pda-boot-screen');
     setTimeout(() => {
-        if (bootScreen) {
-            bootScreen.classList.add('pda-ready'); // Esta clase lo oculta
-            
-            // Opcional: Eliminarlo del mapa después de 1 segundo de la transición
-            setTimeout(() => {
-                bootScreen.style.display = 'none';
-            }, 1000);
+        if (boot) {
+            boot.style.transition = 'opacity 0.8s';
+            boot.style.opacity = '0';
+            setTimeout(() => boot.style.display = 'none', 800);
         }
-    }, 4000); 
+    }, 4000);
 };
 
-
 /* ============================================================
-    VARIABLES PRINCIPALES
+    VARIABLES
 ============================================================ */
-let personajes = JSON.parse(localStorage.getItem("personajes")) || {};
+let personajes    = JSON.parse(localStorage.getItem("personajes"))    || {};
 let notasGlobales = JSON.parse(localStorage.getItem("notasGlobales")) || [];
 let personajeActual = null;
-let notaActualId = null;
-let draggedItem = null;
-let draggedFrom = null;
-
+let notaActualId    = null;
+let draggedItem     = null;
+let draggedFrom     = null;
 const ctxMenu = document.getElementById("contextMenu");
 let ctxTargetItem = null;
 let ctxTargetFrom = null;
-let editingItem = null;
+let editingItem   = null;
 
-const SLOT_SIZE = 60;
-const GAP_SIZE = 6;
+// Selección móvil
+let itemSeleccionado     = null; // datos
+let itemSeleccionadoFrom = null; // "inv"|"baul"
+let itemSeleccionadoEl   = null; // elemento DOM
+
 const esCelular = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-/* ============================================================
-    SISTEMA LONG PRESS / MENÚ CONTEXTUAL MÓVIL
-============================================================ */
-let toqueTimer = null;
-let toqueMoved = false;
-
-document.addEventListener('touchstart', (e) => {
-    const item = e.target.closest('.item');
-    if (!item) return;
-
-    toqueMoved = false;
-
-    toqueTimer = setTimeout(() => {
-        if (toqueMoved) return;
-        if (navigator.vibrate) navigator.vibrate(50);
-
-        // Leer datos del ítem desde el DOM para setear ctxTarget correctamente
-        const itemId = parseInt(item.dataset.id);
-        const fromWhere = item.dataset.from;
-
-        if (!personajeActual) return;
-        const pj = personajes[personajeActual];
-        const lista = fromWhere === 'inv' ? pj.items : pj.baul.items;
-        const itemData = lista.find(i => i.id === itemId);
-
-        if (!itemData) return;
-
-        ctxTargetItem = itemData;
-        ctxTargetFrom = fromWhere;
-        abrirPanelMovil();
-    }, 600);
-}, { passive: true });
-
-document.addEventListener('touchmove', () => {
-    toqueMoved = true;
-    clearTimeout(toqueTimer);
-}, { passive: true });
-
-document.addEventListener('touchend', () => clearTimeout(toqueTimer), { passive: true });
-
-// Prevenir menú nativo solo en móvil
-if (esCelular) {
-    window.addEventListener('contextmenu', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-    });
-}
-
-function abrirPanelMovil() {
-    // Sincronizar opciones del panel con el ctxTargetItem actual
-    const sheet = document.getElementById('mobileActionSheet');
-    if (!sheet || !ctxTargetItem) return;
-
-    const btnMoveBaul = document.getElementById('mobileMoveToBaul');
-    const btnMoveInv  = document.getElementById('mobileMoveToInv');
-    const btnStats    = document.getElementById('mobileViewStats');
-
-    if (btnMoveBaul) btnMoveBaul.style.display = ctxTargetFrom === 'inv'  ? 'block' : 'none';
-    if (btnMoveInv)  btnMoveInv.style.display  = ctxTargetFrom === 'baul' ? 'block' : 'none';
-
-    const hasStats = ctxTargetItem.itemType !== 'generic' && Object.keys(ctxTargetItem.stats).length > 0;
-    if (btnStats) btnStats.style.display = hasStats ? 'block' : 'none';
-
-    sheet.classList.add('active');
-    document.body.style.overflow = 'hidden';
-}
-
-function cerrarPanelMovil() {
-    const sheet = document.getElementById('mobileActionSheet');
-    if (sheet) sheet.classList.remove('active');
-    document.body.style.overflow = 'auto';
-}
-
-/* ============================================================
-    ACTUALIZAR TEXTO ARCHIVO
-============================================================ */
-function actualizarTextoArchivo(input) {
-    const label = document.getElementById('label-foto-item');
-    if (input.files && input.files[0]) {
-        label.innerText = "✔️ ARCHIVO: " + input.files[0].name.toUpperCase();
-        label.style.background = "rgba(0, 255, 153, 0.2)";
-        label.style.borderColor = "#00ff99";
-        label.style.color = "#00ff99";
-    }
-}
-
-/* ============================================================
-    GUARDAR DATOS
-============================================================ */
 function saveData() {
-    localStorage.setItem("personajes", JSON.stringify(personajes));
+    localStorage.setItem("personajes",    JSON.stringify(personajes));
     localStorage.setItem("notasGlobales", JSON.stringify(notasGlobales));
 }
 
 /* ============================================================
-    EXPORTAR / IMPORTAR INVENTARIO
+    SELECCIÓN MÓVIL
+    Toque simple en ítem → se pone naranja + sube la barra.
+    Toque fuera → se cierra.
+============================================================ */
+function seleccionarItem(data, from, el) {
+    if (itemSeleccionadoEl) itemSeleccionadoEl.classList.remove('selected-mobile');
+    itemSeleccionado = data; itemSeleccionadoFrom = from; itemSeleccionadoEl = el;
+    el.classList.add('selected-mobile');
+
+    document.getElementById('barItemName').textContent = '— ' + data.nombre.toUpperCase() + ' —';
+    const hs = data.itemType !== 'generic' && Object.keys(data.stats).length > 0;
+    document.getElementById('barBtnStats').style.display = hs ? '' : 'none';
+    document.getElementById('barBtnMover').textContent   = from === 'inv' ? '📦 AL BAÚL' : '🔄 AL INV.';
+    document.getElementById('mobileItemActionBar').classList.add('visible');
+    if (navigator.vibrate) navigator.vibrate(25);
+}
+
+function deseleccionarItem() {
+    if (itemSeleccionadoEl) itemSeleccionadoEl.classList.remove('selected-mobile');
+    itemSeleccionado = itemSeleccionadoFrom = itemSeleccionadoEl = null;
+    document.getElementById('mobileItemActionBar').classList.remove('visible');
+}
+
+// Cerrar al tocar fuera
+document.addEventListener('touchstart', (e) => {
+    if (itemSeleccionado && !e.target.closest('.item') && !e.target.closest('#mobileItemActionBar')) {
+        deseleccionarItem();
+    }
+}, { passive: true });
+
+// Acciones de la barra
+function barAccionStats()    { if (!itemSeleccionado) return; const it=itemSeleccionado; deseleccionarItem(); openStatsModal(it); }
+function barAccionMover()    { if (!itemSeleccionado) return; const it=itemSeleccionado, dest=itemSeleccionadoFrom==='inv'?'baul':'inv'; deseleccionarItem(); moveItem(it,dest); }
+function barAccionEliminar() { if (!itemSeleccionado) return; const it=itemSeleccionado, fr=itemSeleccionadoFrom; deseleccionarItem(); deleteItem(it,fr); }
+
+if (esCelular) window.addEventListener('contextmenu', e => e.preventDefault());
+
+/* ============================================================
+    UTILS
+============================================================ */
+function actualizarTextoArchivo(input) {
+    const l = document.getElementById('label-foto-item');
+    if (input.files && input.files[0]) { l.innerText="✔️ ARCHIVO: "+input.files[0].name.toUpperCase(); l.style.background="rgba(0,255,153,0.2)"; l.style.borderColor="#00ff99"; l.style.color="#00ff99"; }
+}
+
+/* ============================================================
+    EXPORTAR / IMPORTAR
 ============================================================ */
 document.getElementById("btnExportData").onclick = () => {
-    const blob = new Blob([JSON.stringify(personajes, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = Object.assign(document.createElement('a'), {
-        href: url,
-        download: `inventario_re_export_${new Date().toISOString().slice(0, 10)}.json`
-    });
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    alert("Inventario exportado exitosamente como JSON.");
+    const blob=new Blob([JSON.stringify(personajes,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=Object.assign(document.createElement('a'),{href:url,download:`inventario_re_export_${new Date().toISOString().slice(0,10)}.json`});
+    document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+    alert("Inventario exportado.");
 };
-
 document.getElementById("btnImportTrigger").onclick = () => document.getElementById("importFile").click();
-
-document.getElementById("importFile").onchange = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        try {
-            const importedData = JSON.parse(e.target.result);
-            if (typeof importedData === 'object' && Object.keys(importedData).every(k => importedData[k].slots !== undefined)) {
-                personajes = importedData;
-                personajeActual = null;
-                saveData();
-                renderListaPersonajes();
-                alert("Inventario importado exitosamente. Los datos anteriores fueron reemplazados.");
-            } else {
-                alert("Error: El archivo JSON importado no parece ser un archivo de inventario válido.");
-            }
-        } catch {
-            alert("Error al leer el archivo. Asegúrate de que sea un JSON válido.");
-        }
-    };
-    reader.readAsText(file);
-    event.target.value = '';
+document.getElementById("importFile").onchange = (ev) => {
+    const file=ev.target.files[0];if(!file)return;
+    const r=new FileReader();
+    r.onload=(e)=>{try{const d=JSON.parse(e.target.result);if(typeof d==='object'&&Object.keys(d).every(k=>d[k].slots!==undefined)){personajes=d;personajeActual=null;saveData();renderListaPersonajes();alert("Inventario importado.");}else alert("Archivo no válido.");}catch{alert("Error al leer.");}};
+    r.readAsText(file);ev.target.value='';
 };
 
 /* ============================================================
-    SISTEMA DE NOTAS (LORE)
+    NOTAS
 ============================================================ */
 function renderNotasList() {
-    const list = document.getElementById("notasList");
-    list.innerHTML = "";
-
-    if (notasGlobales.length === 0) {
-        notasGlobales.push({
-            id: Date.now(),
-            titulo: "Pista Inicial (Lore)",
-            contenido: "Presiona 'Nueva Nota' para empezar a escribir.",
-            imagen: null
-        });
-        saveData();
-    }
-
-    notasGlobales.forEach(note => {
-        const btn = document.createElement("button");
-        btn.textContent = note.titulo;
-        btn.classList.toggle('selected', note.id === notaActualId);
-        btn.dataset.id = note.id;
-        btn.onclick = () => selectNote(note.id);
-        list.appendChild(btn);
-    });
-
-    if (!notaActualId || !notasGlobales.some(n => n.id === notaActualId)) {
-        selectNote(notasGlobales[0].id);
-    }
-
+    const list=document.getElementById("notasList");list.innerHTML="";
+    if(notasGlobales.length===0){notasGlobales.push({id:Date.now(),titulo:"Pista Inicial (Lore)",contenido:"Presiona 'Nueva Nota' para empezar.",imagen:null});saveData();}
+    notasGlobales.forEach(note=>{const btn=document.createElement("button");btn.textContent=note.titulo;btn.classList.toggle('selected',note.id===notaActualId);btn.onclick=()=>selectNote(note.id);list.appendChild(btn);});
+    if(!notaActualId||!notasGlobales.some(n=>n.id===notaActualId))selectNote(notasGlobales[0].id);
     document.getElementById("sndPickup").play();
 }
-
 function selectNote(id) {
-    notaActualId = id;
-    const note = notasGlobales.find(n => n.id === id);
-    if (!note) return;
-
-    document.getElementById("noteTitleInput").value = note.titulo;
-    document.getElementById("noteContent").value = note.contenido;
-
-    const imgPreview = document.getElementById("noteImagePreview");
-    if (note.imagen) {
-        imgPreview.src = note.imagen;
-        imgPreview.style.display = 'block';
-    } else {
-        imgPreview.src = '';
-        imgPreview.style.display = 'none';
-    }
-
-    document.getElementById("noteImageUpload").value = '';
-    renderNotasList();
+    notaActualId=id;const note=notasGlobales.find(n=>n.id===id);if(!note)return;
+    document.getElementById("noteTitleInput").value=note.titulo;document.getElementById("noteContent").value=note.contenido;
+    const ip=document.getElementById("noteImagePreview");
+    if(note.imagen){ip.src=note.imagen;ip.style.display='block';}else{ip.src='';ip.style.display='none';}
+    document.getElementById("noteImageUpload").value='';renderNotasList();
 }
-
-document.getElementById("btnNewNote").onclick = () => {
-    const newNote = { id: Date.now(), titulo: "Nueva Nota", contenido: "", imagen: null };
-    notasGlobales.push(newNote);
-    saveData();
-    selectNote(newNote.id);
-    document.getElementById("noteTitleInput").focus();
+document.getElementById("btnNewNote").onclick=()=>{const n={id:Date.now(),titulo:"Nueva Nota",contenido:"",imagen:null};notasGlobales.push(n);saveData();selectNote(n.id);document.getElementById("noteTitleInput").focus();};
+document.getElementById("btnSaveNote").onclick=()=>{
+    if(!notaActualId)return;const note=notasGlobales.find(n=>n.id===notaActualId);if(!note)return;
+    const file=document.getElementById("noteImageUpload").files[0];
+    const doSave=(img)=>{note.titulo=document.getElementById("noteTitleInput").value;note.contenido=document.getElementById("noteContent").value;if(img)note.imagen=img;saveData();selectNote(note.id);alert("Nota guardada.");};
+    if(file){const r=new FileReader();r.onload=e=>doSave(e.target.result);r.readAsDataURL(file);}else doSave(null);
 };
-
-document.getElementById("btnSaveNote").onclick = () => {
-    if (!notaActualId) return;
-    const noteIndex = notasGlobales.findIndex(n => n.id === notaActualId);
-    if (noteIndex === -1) return;
-
-    const note = notasGlobales[noteIndex];
-    const file = document.getElementById("noteImageUpload").files[0];
-
-    const doSave = (imgResult) => {
-        note.titulo = document.getElementById("noteTitleInput").value;
-        note.contenido = document.getElementById("noteContent").value;
-        if (imgResult) note.imagen = imgResult;
-        saveData();
-        selectNote(note.id);
-        alert("Nota guardada.");
-    };
-
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => doSave(e.target.result);
-        reader.readAsDataURL(file);
-    } else {
-        doSave(null);
-    }
+document.getElementById("btnDeleteNote").onclick=()=>{
+    if(!notaActualId)return;if(notasGlobales.length===1){alert("No podés eliminar la única nota.");return;}
+    if(confirm("¿Eliminar esta nota?")){notasGlobales=notasGlobales.filter(n=>n.id!==notaActualId);notaActualId=notasGlobales[0].id;saveData();selectNote(notaActualId);}
 };
-
-document.getElementById("btnDeleteNote").onclick = () => {
-    if (!notaActualId) return;
-    if (notasGlobales.length === 1) { alert("No puedes eliminar la única nota que existe."); return; }
-    if (confirm("¿Estás seguro de que quieres eliminar esta nota?")) {
-        notasGlobales = notasGlobales.filter(n => n.id !== notaActualId);
-        notaActualId = notasGlobales[0].id;
-        saveData();
-        selectNote(notaActualId);
-        alert("Nota eliminada.");
-    }
+document.getElementById("btnExportNotas").onclick=()=>{
+    if(!notaActualId){alert("Seleccioná una nota.");return;}const note=notasGlobales.find(n=>n.id===notaActualId);if(!note)return;
+    const blob=new Blob([JSON.stringify(note,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);
+    const safe=note.titulo.replace(/[^a-z0-9]/gi,'_').toLowerCase().substring(0,30);
+    const a=Object.assign(document.createElement('a'),{href:url,download:`nota_${safe}.notes`});
+    document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
 };
-
-document.getElementById("btnExportNotas").onclick = () => {
-    if (!notaActualId) { alert("Selecciona una nota para exportar."); return; }
-    const note = notasGlobales.find(n => n.id === notaActualId);
-    if (!note) return;
-
-    const blob = new Blob([JSON.stringify(note, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const safeTitle = note.titulo.replace(/[^a-z0-9]/gi, '_').toLowerCase().substring(0, 30);
-    const a = Object.assign(document.createElement('a'), { href: url, download: `nota_${safeTitle}.notes` });
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    alert(`Nota "${note.titulo}" exportada exitosamente.`);
-};
-
-document.getElementById("btnImportNotesTrigger").onclick = () => document.getElementById("importNotesFile").click();
-
-document.getElementById("importNotesFile").onchange = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        try {
-            const importedNote = JSON.parse(e.target.result);
-            if (typeof importedNote === 'object' && importedNote !== null &&
-                importedNote.titulo !== undefined && importedNote.contenido !== undefined) {
-                importedNote.id = Date.now();
-                notasGlobales.push(importedNote);
-                saveData();
-                selectNote(importedNote.id);
-                alert(`Nota "${importedNote.titulo}" importada y agregada.`);
-            } else {
-                alert("Error: El archivo no parece ser una nota individual válida.");
-            }
-        } catch {
-            alert("Error al leer el archivo. Asegúrate de que sea un JSON (.notes) válido.");
-        }
-    };
-    reader.readAsText(file);
-    event.target.value = '';
+document.getElementById("btnImportNotesTrigger").onclick=()=>document.getElementById("importNotesFile").click();
+document.getElementById("importNotesFile").onchange=(ev)=>{
+    const file=ev.target.files[0];if(!file)return;const r=new FileReader();
+    r.onload=(e)=>{try{const n=JSON.parse(e.target.result);if(n&&n.titulo!==undefined&&n.contenido!==undefined){n.id=Date.now();notasGlobales.push(n);saveData();selectNote(n.id);alert(`Nota "${n.titulo}" importada.`);}else alert("Archivo no válido.");}catch{alert("Error al leer.");}};
+    r.readAsText(file);ev.target.value='';
 };
 
 /* ============================================================
-    CONTROL DE ESTADO DE SALUD
+    SALUD
 ============================================================ */
-function changeHealthStatus(status) {
-    if (!personajeActual) return;
-    personajes[personajeActual].status = status;
-    saveData();
-    updateHealthUI(status);
-}
-
-function updateHealthUI(status) {
-    const textEl    = document.getElementById("healthStatusText");
-    const barEl     = document.getElementById("healthBar");
-    const statusPanel = document.getElementById("statusPanel");
-
-    statusPanel.style.display = personajeActual ? 'block' : 'none';
-    if (!personajeActual) return;
-
-    const map = {
-        caution: { color: '#ff0', text: 'CAUTION', width: '60%' },
-        danger:  { color: '#f00', text: 'DANGER',  width: '30%' },
-        fine:    { color: '#0f0', text: 'FINE',     width: '100%' }
-    };
-    const { color, text, width } = map[status] || map.fine;
-
-    textEl.textContent = text;
-    textEl.style.color = color;
-    textEl.style.textShadow = `0 0 3px ${color}`;
-    barEl.style.background = color;
-    barEl.style.width = width;
+function changeHealthStatus(s){if(!personajeActual)return;personajes[personajeActual].status=s;saveData();updateHealthUI(s);}
+function updateHealthUI(s){
+    const t=document.getElementById("healthStatusText"),b=document.getElementById("healthBar"),p=document.getElementById("statusPanel");
+    p.style.display=personajeActual?'block':'none';if(!personajeActual)return;
+    const m={caution:{color:'#ff0',text:'CAUTION',width:'60%'},danger:{color:'#f00',text:'DANGER',width:'30%'},fine:{color:'#0f0',text:'FINE',width:'100%'}};
+    const{color,text,width}=m[s]||m.fine;
+    t.textContent=text;t.style.color=color;t.style.textShadow=`0 0 3px ${color}`;b.style.background=color;b.style.width=width;
 }
 
 /* ============================================================
-    LISTA DE PERSONAJES
+    LISTA PERSONAJES
 ============================================================ */
-function renderListaPersonajes() {
-    const cont = document.getElementById("listaPersonajes");
-    const btnEliminar = document.getElementById("btnEliminarPJ");
-    cont.innerHTML = "";
-
-    const nombres = Object.keys(personajes);
-    if (!personajeActual && nombres.length > 0) personajeActual = nombres[0];
-
-    if (personajeActual && personajes[personajeActual]) {
-        btnEliminar.disabled = false;
-        renderPersonajeActual();
-    } else {
-        btnEliminar.disabled = true;
-        personajeActual = null;
-        document.getElementById("pjHeader").style.display = "none";
-        document.getElementById("statusPanel").style.display = "none";
-        document.getElementById("inventarioGrid").style.display = "none";
-        document.getElementById("inventarioPlaceholder").style.display = "block";
-        document.getElementById("panelAddItem").style.display = "none";
-        document.getElementById("colBaul").style.display = "block";
-        document.getElementById("nombrePJ").textContent = "Seleccioná un personaje";
-        document.getElementById("pjFoto").src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+function renderListaPersonajes(){
+    const cont=document.getElementById("listaPersonajes"),bEl=document.getElementById("btnEliminarPJ");
+    cont.innerHTML="";const nombres=Object.keys(personajes);
+    if(!personajeActual&&nombres.length>0)personajeActual=nombres[0];
+    if(personajeActual&&personajes[personajeActual]){bEl.disabled=false;renderPersonajeActual();}
+    else{
+        bEl.disabled=true;personajeActual=null;
+        ["pjHeader","statusPanel","inventarioGrid","panelAddItem"].forEach(id=>document.getElementById(id).style.display="none");
+        document.getElementById("inventarioPlaceholder").style.display="block";document.getElementById("colBaul").style.display="block";
+        document.getElementById("nombrePJ").textContent="Seleccioná un personaje";
+        document.getElementById("pjFoto").src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
     }
-
-    nombres.forEach(nombre => {
-        const btn = document.createElement("button");
-        btn.textContent = nombre;
-        btn.classList.toggle('selected', nombre === personajeActual);
-        btn.onclick = () => {
-            personajeActual = nombre;
-            renderListaPersonajes();
-            document.getElementById("sndSelect").play();
-        };
+    nombres.forEach(nombre=>{
+        const btn=document.createElement("button");btn.textContent=nombre;btn.classList.toggle('selected',nombre===personajeActual);
+        btn.onclick=()=>{personajeActual=nombre;deseleccionarItem();renderListaPersonajes();document.getElementById("sndSelect").play();};
         cont.appendChild(btn);
     });
 }
-
-document.getElementById("btnCrearPJ").onclick = () => {
-    const nombre = document.getElementById("nuevoNombre").value.trim();
-    const slots = parseInt(document.getElementById("nuevoSlots").value);
-    const file = document.getElementById("nuevaFoto").files[0];
-
-    if (!nombre || !slots || slots < 1) return;
-    if (personajes[nombre]) { alert("Ya existe un personaje con ese nombre."); return; }
-
-    const doCreate = (imgResult) => {
-        personajes[nombre] = {
-            slots, items: [],
-            foto: imgResult,
-            baul: { slots: 15, items: [] },
-            status: 'fine'
-        };
-        saveData();
-        personajeActual = nombre;
-        renderListaPersonajes();
-        ["nuevoNombre", "nuevoSlots", "nuevaFoto"].forEach(id => document.getElementById(id).value = "");
-        document.getElementById("sndPickup").play();
-    };
-
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => doCreate(e.target.result);
-        reader.readAsDataURL(file);
-    } else {
-        doCreate(null);
-    }
+document.getElementById("btnCrearPJ").onclick=()=>{
+    const nombre=document.getElementById("nuevoNombre").value.trim(),slots=parseInt(document.getElementById("nuevoSlots").value),file=document.getElementById("nuevaFoto").files[0];
+    if(!nombre||!slots||slots<1)return;if(personajes[nombre]){alert("Ya existe ese personaje.");return;}
+    const doCreate=(img)=>{personajes[nombre]={slots,items:[],foto:img,baul:{slots:15,items:[]},status:'fine'};saveData();personajeActual=nombre;renderListaPersonajes();["nuevoNombre","nuevoSlots","nuevaFoto"].forEach(id=>document.getElementById(id).value="");document.getElementById("sndPickup").play();};
+    if(file){const r=new FileReader();r.onload=e=>doCreate(e.target.result);r.readAsDataURL(file);}else doCreate(null);
 };
-
-document.getElementById("btnEliminarPJ").onclick = () => {
-    if (!personajeActual || !personajes[personajeActual]) return;
-    if (confirm(`¿Eliminar a ${personajeActual} y todo su inventario? Esta acción es irreversible.`)) {
-        delete personajes[personajeActual];
-        personajeActual = null;
-        saveData();
-        renderListaPersonajes();
-    }
+document.getElementById("btnEliminarPJ").onclick=()=>{
+    if(!personajeActual||!personajes[personajeActual])return;
+    if(confirm(`¿Eliminar a ${personajeActual}? Acción irreversible.`)){delete personajes[personajeActual];personajeActual=null;saveData();renderListaPersonajes();}
 };
 
 /* ============================================================
-    RENDER INVENTARIO Y BAÚL
+    RENDER GRIDS
 ============================================================ */
-function renderPersonajeActual() {
-    if (!personajeActual) return;
-    const pj = personajes[personajeActual];
-
-    document.getElementById("pjHeader").style.display = "flex";
-    document.getElementById("inventarioGrid").style.display = "grid";
-    document.getElementById("inventarioPlaceholder").style.display = "none";
-    document.getElementById("panelAddItem").style.display = "block";
-    document.getElementById("nombrePJ").textContent = personajeActual;
-    document.getElementById("pjFoto").src = pj.foto || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-    document.getElementById("baulSlotsInput").value = pj.baul.slots;
-
-    updateHealthUI(pj.status);
-    renderGrid("inventarioGrid", pj.slots, pj.items, "inv");
-    renderGrid("baulGrid", pj.baul.slots, pj.baul.items, "baul");
+function renderPersonajeActual(){
+    if(!personajeActual)return;const pj=personajes[personajeActual];
+    document.getElementById("pjHeader").style.display="flex";document.getElementById("inventarioGrid").style.display="grid";
+    document.getElementById("inventarioPlaceholder").style.display="none";document.getElementById("panelAddItem").style.display="block";
+    document.getElementById("nombrePJ").textContent=personajeActual;
+    document.getElementById("pjFoto").src=pj.foto||'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+    document.getElementById("baulSlotsInput").value=pj.baul.slots;
+    updateHealthUI(pj.status);renderGrid("inventarioGrid",pj.slots,pj.items,"inv");renderGrid("baulGrid",pj.baul.slots,pj.baul.items,"baul");
 }
 
-function renderGrid(gridId, totalSlots, items, fromWhere) {
-    const grid = document.getElementById(gridId);
-    grid.innerHTML = "";
-    grid.style.setProperty("--cols", fromWhere === "inv" ? personajes[personajeActual].slots : 5);
+function renderGrid(gridId,totalSlots,items,fromWhere){
+    const grid=document.getElementById(gridId);grid.innerHTML="";
+    grid.style.setProperty("--cols",fromWhere==="inv"?personajes[personajeActual].slots:5);
+    const occ=Array(totalSlots).fill(false),byPos={};
+    items.forEach(it=>{byPos[it.pos]=it;for(let i=0;i<it.slotsUsados;i++)if(it.pos+i<totalSlots)occ[it.pos+i]=true;});
 
-    const slotOccupied = Array(totalSlots).fill(false);
-    const itemsByPos = {};
+    for(let i=0;i<totalSlots;i++){
+        if(occ[i]&&!byPos[i])continue;
+        const slot=document.createElement("div");slot.className="slot";slot.dataset.index=i;slot.dataset.from=fromWhere;
 
-    items.forEach(it => {
-        itemsByPos[it.pos] = it;
-        for (let i = 0; i < it.slotsUsados; i++) {
-            if (it.pos + i < totalSlots) slotOccupied[it.pos + i] = true;
-        }
-    });
+        if(byPos[i]){
+            const it=byPos[i];
+            slot.style.gridColumn="span "+it.slotsUsados;slot.style.background="transparent";slot.style.border="none";
+            const el=document.createElement("div");el.className="item";el.draggable=!esCelular;el.dataset.id=it.id;el.dataset.from=fromWhere;
 
-    for (let i = 0; i < totalSlots; i++) {
-        if (slotOccupied[i] && !itemsByPos[i]) continue;
+            // Restaurar resaltado tras re-render
+            if(itemSeleccionado&&itemSeleccionado.id===it.id){el.classList.add('selected-mobile');itemSeleccionadoEl=el;}
 
-        const slot = document.createElement("div");
-        slot.className = "slot";
-        slot.dataset.index = i;
-        slot.dataset.from = fromWhere;
+            if(it.img){const img=document.createElement("img");img.src=it.img;el.appendChild(img);}
+            const lbl=document.createElement("span");lbl.className="item-label";
+            lbl.textContent=(it.itemType!=='generic'&&Object.keys(it.stats).length>0)?`${it.nombre} (${it.itemType==='firearm'?'Fuego':'Melee'})`:it.nombre;
+            el.appendChild(lbl);
+            if(it.cantidad&&it.cantidad>1){const cnt=document.createElement("span");cnt.className="item-count";cnt.textContent=it.cantidad;el.appendChild(cnt);}
 
-        if (itemsByPos[i]) {
-            const it = itemsByPos[i];
-            slot.style.gridColumn = "span " + it.slotsUsados;
-            slot.style.background = "transparent";
-            slot.style.border = "none";
-
-            const itemEl = document.createElement("div");
-            itemEl.className = "item";
-            itemEl.draggable = !esCelular; // En móvil no usamos drag
-            itemEl.dataset.id = it.id;
-            itemEl.dataset.from = fromWhere;
-
-            if (it.img) {
-                const img = document.createElement("img");
-                img.src = it.img;
-                itemEl.appendChild(img);
+            if(esCelular){
+                // MÓVIL: toque simple = seleccionar ítem, sin long press
+                el.addEventListener('touchend',(e)=>{
+                    e.preventDefault();e.stopPropagation();
+                    seleccionarItem(it,fromWhere,el);
+                },{passive:false});
+            } else {
+                // DESKTOP: clic derecho
+                el.oncontextmenu=(e)=>{e.preventDefault();openContextMenu(e.clientX,e.clientY,it,fromWhere);};
+                el.addEventListener("dragstart",()=>{draggedItem=it;draggedFrom=fromWhere;el.classList.add("dragging");});
+                el.addEventListener("dragend",  ()=>el.classList.remove("dragging"));
             }
-
-            const label = document.createElement("span");
-            label.className = "item-label";
-            label.textContent = (it.itemType !== 'generic' && Object.keys(it.stats).length > 0)
-                ? `${it.nombre} (${it.itemType === 'firearm' ? 'Fuego' : 'Melee'})`
-                : it.nombre;
-            itemEl.appendChild(label);
-
-            if (it.cantidad && it.cantidad > 1) {
-                const count = document.createElement("span");
-                count.className = "item-count";
-                count.textContent = it.cantidad;
-                itemEl.appendChild(count);
-            }
-
-            // En desktop: clic derecho abre menú contextual
-            // En móvil: long press manejado globalmente arriba
-            if (!esCelular) {
-                itemEl.oncontextmenu = (e) => {
-                    e.preventDefault();
-                    openContextMenu(e.clientX, e.clientY, it, fromWhere);
-                };
-            }
-
-            // Drag & Drop solo desktop
-            if (!esCelular) {
-                itemEl.addEventListener("dragstart", () => {
-                    draggedItem = it;
-                    draggedFrom = fromWhere;
-                    itemEl.classList.add("dragging");
-                });
-                itemEl.addEventListener("dragend", () => itemEl.classList.remove("dragging"));
-            }
-
-            slot.appendChild(itemEl);
-            i += it.slotsUsados - 1;
+            slot.appendChild(el);i+=it.slotsUsados-1;
         }
 
-        if (!esCelular) {
-            slot.addEventListener("dragover", (e) => {
-                e.preventDefault();
-                if (draggedItem) slot.classList.add('drop-target');
-            });
-            slot.addEventListener("dragleave", () => slot.classList.remove('drop-target'));
-            slot.addEventListener("drop", () => {
-                slot.classList.remove('drop-target');
-                dropItem(i, fromWhere);
-            });
+        if(!esCelular){
+            slot.addEventListener("dragover", (e)=>{e.preventDefault();if(draggedItem)slot.classList.add('drop-target');});
+            slot.addEventListener("dragleave",()=>slot.classList.remove('drop-target'));
+            slot.addEventListener("drop",     ()=>{slot.classList.remove('drop-target');dropItem(i,fromWhere);});
         }
-
         grid.appendChild(slot);
     }
 }
 
-document.getElementById("btnActualizarBaul").onclick = () => {
-    if (!personajeActual) return;
-    const pj = personajes[personajeActual];
-    const newSlots = parseInt(document.getElementById("baulSlotsInput").value);
-
-    if (isNaN(newSlots) || newSlots < 2) {
-        alert("El baúl debe tener al menos 2 slots.");
-        document.getElementById("baulSlotsInput").value = pj.baul.slots;
-        return;
-    }
-
-    const lastPos = pj.baul.items.reduce((max, item) => Math.max(max, item.pos + item.slotsUsados), 0);
-    if (newSlots < lastPos) {
-        alert(`No puedes reducir el baúl, hay ítems ocupando hasta el slot ${lastPos}.`);
-        document.getElementById("baulSlotsInput").value = pj.baul.slots;
-        return;
-    }
-
-    pj.baul.slots = newSlots;
-    saveData();
-    renderPersonajeActual();
+document.getElementById("btnActualizarBaul").onclick=()=>{
+    if(!personajeActual)return;const pj=personajes[personajeActual],ns=parseInt(document.getElementById("baulSlotsInput").value);
+    if(isNaN(ns)||ns<2){alert("Mínimo 2 slots.");document.getElementById("baulSlotsInput").value=pj.baul.slots;return;}
+    const last=pj.baul.items.reduce((m,it)=>Math.max(m,it.pos+it.slotsUsados),0);
+    if(ns<last){alert(`Hay ítems hasta el slot ${last}.`);document.getElementById("baulSlotsInput").value=pj.baul.slots;return;}
+    pj.baul.slots=ns;saveData();renderPersonajeActual();
 };
 
 /* ============================================================
     AGREGAR ÍTEM
 ============================================================ */
-document.getElementById("btnAgregarItem").onclick = () => {
-    if (!personajeActual) return;
-
-    const nombre      = document.getElementById("itemNombre").value.trim();
-    const slots       = parseInt(document.getElementById("itemSlots").value);
-    const cantidad    = parseInt(document.getElementById("itemCantidad").value) || 1;
-    const file        = document.getElementById("itemImagen").files[0];
-    const itemType    = document.getElementById("itemTypeSelect").value;
-    const description = document.getElementById("itemDescriptionInitial").value.trim();
-
-    if (!nombre || !slots || slots < 1 || cantidad < 1) return;
-
-    const pj = personajes[personajeActual];
-    const freeIndex = findSpace(pj.slots, pj.items, slots);
-    if (freeIndex === -1) {
-        document.getElementById("mensajeEspacio").textContent = "No hay espacio suficiente.";
-        return;
-    }
-
-    const statsMap = {
-        firearm: { potencia: 10, velocidad_disparo: 5, velocidad_recarga: 4, capacidad: 10 },
-        melee:   { potencia: 15, velocidad_ataque: 5, alcance: 1, durabilidad: 100 }
-    };
-
-    const doAdd = (imgResult) => {
-        pj.items.push({
-            id: Date.now(), nombre, slotsUsados: slots,
-            img: imgResult, pos: freeIndex, cantidad,
-            itemType, stats: statsMap[itemType] || {}, description
-        });
-        saveData();
-        renderPersonajeActual();
-        document.getElementById("sndPickup").play();
-    };
-
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => doAdd(e.target.result);
-        reader.readAsDataURL(file);
-    } else {
-        doAdd(null);
-    }
-
-    ["itemNombre", "itemSlots", "itemDescriptionInitial"].forEach(id => document.getElementById(id).value = "");
-    document.getElementById("itemCantidad").value = "1";
-    document.getElementById("itemImagen").value = "";
-    document.getElementById("mensajeEspacio").textContent = "";
-    document.getElementById("itemTypeSelect").value = "generic";
+document.getElementById("btnAgregarItem").onclick=()=>{
+    if(!personajeActual)return;
+    const nombre=document.getElementById("itemNombre").value.trim(),slots=parseInt(document.getElementById("itemSlots").value),
+          cantidad=parseInt(document.getElementById("itemCantidad").value)||1,file=document.getElementById("itemImagen").files[0],
+          itemType=document.getElementById("itemTypeSelect").value,description=document.getElementById("itemDescriptionInitial").value.trim();
+    if(!nombre||!slots||slots<1||cantidad<1)return;
+    const pj=personajes[personajeActual],free=findSpace(pj.slots,pj.items,slots);
+    if(free===-1){document.getElementById("mensajeEspacio").textContent="No hay espacio.";return;}
+    const sm={firearm:{potencia:10,velocidad_disparo:5,velocidad_recarga:4,capacidad:10},melee:{potencia:15,velocidad_ataque:5,alcance:1,durabilidad:100}};
+    const doAdd=(img)=>{pj.items.push({id:Date.now(),nombre,slotsUsados:slots,img,pos:free,cantidad,itemType,stats:sm[itemType]||{},description});saveData();renderPersonajeActual();document.getElementById("sndPickup").play();};
+    if(file){const r=new FileReader();r.onload=e=>doAdd(e.target.result);r.readAsDataURL(file);}else doAdd(null);
+    ["itemNombre","itemSlots","itemDescriptionInitial"].forEach(id=>document.getElementById(id).value="");
+    document.getElementById("itemCantidad").value="1";document.getElementById("itemImagen").value="";document.getElementById("mensajeEspacio").textContent="";document.getElementById("itemTypeSelect").value="generic";
 };
-
-function findSpace(total, items, need) {
-    const arr = Array(total).fill(false);
-    items.forEach(it => {
-        for (let i = 0; i < it.slotsUsados; i++) arr[it.pos + i] = true;
-    });
-    for (let i = 0; i <= total - need; i++) {
-        if (!arr.slice(i, i + need).some(Boolean)) return i;
-    }
-    return -1;
+function findSpace(total,items,need){
+    const arr=Array(total).fill(false);items.forEach(it=>{for(let i=0;i<it.slotsUsados;i++)arr[it.pos+i]=true;});
+    for(let i=0;i<=total-need;i++)if(!arr.slice(i,i+need).some(Boolean))return i;return -1;
 }
 
 /* ============================================================
     DRAG & DROP (DESKTOP)
 ============================================================ */
-function dropItem(targetIndex, targetFrom) {
-    if (!draggedItem || !personajeActual || draggedFrom !== targetFrom) { draggedItem = null; return; }
-
-    const pj = personajes[personajeActual];
-    const currentList  = targetFrom === "inv" ? pj.items : pj.baul.items;
-    const totalSlots   = targetFrom === "inv" ? pj.slots  : pj.baul.slots;
-    const tempList     = currentList.filter(it => it.id !== draggedItem.id);
-
-    let canPlace = true;
-    for (let i = 0; i < draggedItem.slotsUsados; i++) {
-        const pos = targetIndex + i;
-        if (pos >= totalSlots || tempList.some(it => it.pos <= pos && it.pos + it.slotsUsados > pos)) {
-            canPlace = false; break;
-        }
-    }
-
-    if (canPlace) {
-        draggedItem.pos = targetIndex;
-        saveData();
-        renderPersonajeActual();
-        document.getElementById("sndMove").play();
-    } else {
-        alert("No hay espacio para soltar el ítem aquí.");
-    }
-    draggedItem = null;
+function dropItem(ti,tf){
+    if(!draggedItem||!personajeActual||draggedFrom!==tf){draggedItem=null;return;}
+    const pj=personajes[personajeActual],list=tf==="inv"?pj.items:pj.baul.items,total=tf==="inv"?pj.slots:pj.baul.slots;
+    const temp=list.filter(it=>it.id!==draggedItem.id);let ok=true;
+    for(let i=0;i<draggedItem.slotsUsados;i++){const p=ti+i;if(p>=total||temp.some(it=>it.pos<=p&&it.pos+it.slotsUsados>p)){ok=false;break;}}
+    if(ok){draggedItem.pos=ti;saveData();renderPersonajeActual();document.getElementById("sndMove").play();}else alert("No hay espacio aquí.");
+    draggedItem=null;
 }
 
 /* ============================================================
-    MENÚ CONTEXTUAL (DESKTOP)
+    CONTEXT MENU (DESKTOP)
 ============================================================ */
-function openContextMenu(x, y, item, from) {
-    ctxTargetItem = item;
-    ctxTargetFrom = from;
-
-    document.getElementById("ctxMoveToBaul").style.display = from === "inv"  ? "block" : "none";
-    document.getElementById("ctxMoveToInv").style.display  = from === "baul" ? "block" : "none";
-
-    const hasStats = item.itemType !== 'generic' && Object.keys(item.stats).length > 0;
-    document.getElementById("ctxViewStats").style.display = hasStats ? "block" : "none";
-
-    ctxMenu.style.left = `${x}px`;
-    ctxMenu.style.top  = `${y}px`;
-    ctxMenu.style.display = 'block';
+function openContextMenu(x,y,item,from){
+    ctxTargetItem=item;ctxTargetFrom=from;
+    document.getElementById("ctxMoveToBaul").style.display=from==="inv"?"block":"none";
+    document.getElementById("ctxMoveToInv").style.display =from==="baul"?"block":"none";
+    document.getElementById("ctxViewStats").style.display=(item.itemType!=='generic'&&Object.keys(item.stats).length>0)?"block":"none";
+    ctxMenu.style.left=`${x}px`;ctxMenu.style.top=`${y}px`;ctxMenu.style.display='block';
     document.getElementById("sndPickup").play();
 }
-
-document.addEventListener('click', (e) => {
-    if (!ctxMenu.contains(e.target) && !document.getElementById('statsModal').contains(e.target)) {
-        ctxMenu.style.display = 'none';
-    }
-});
-
-document.getElementById("ctxClose").onclick       = () => ctxMenu.style.display = 'none';
-document.getElementById("ctxMoveToBaul").onclick  = () => moveItem(ctxTargetItem, "baul");
-document.getElementById("ctxMoveToInv").onclick   = () => moveItem(ctxTargetItem, "inv");
-document.getElementById("ctxDelete").onclick      = () => deleteItem(ctxTargetItem, ctxTargetFrom);
-document.getElementById("ctxViewStats").onclick   = () => openStatsModal(ctxTargetItem);
-
-// Botones del panel móvil — deben existir en el HTML con estos IDs
-const mobileBtnMap = {
-    mobileMoveToBaul: () => { moveItem(ctxTargetItem, "baul"); cerrarPanelMovil(); },
-    mobileMoveToInv:  () => { moveItem(ctxTargetItem, "inv");  cerrarPanelMovil(); },
-    mobileViewStats:  () => { openStatsModal(ctxTargetItem);   cerrarPanelMovil(); },
-    mobileDelete:     () => { deleteItem(ctxTargetItem, ctxTargetFrom); cerrarPanelMovil(); },
-    mobileClose:      () => cerrarPanelMovil()
-};
-Object.entries(mobileBtnMap).forEach(([id, fn]) => {
-    const el = document.getElementById(id);
-    if (el) el.onclick = fn;
-});
+document.addEventListener('click',(e)=>{if(!ctxMenu.contains(e.target)&&!document.getElementById('statsModal').contains(e.target))ctxMenu.style.display='none';});
+document.getElementById("ctxClose").onclick     =()=>ctxMenu.style.display='none';
+document.getElementById("ctxMoveToBaul").onclick =()=>moveItem(ctxTargetItem,"baul");
+document.getElementById("ctxMoveToInv").onclick  =()=>moveItem(ctxTargetItem,"inv");
+document.getElementById("ctxDelete").onclick     =()=>deleteItem(ctxTargetItem,ctxTargetFrom);
+document.getElementById("ctxViewStats").onclick  =()=>openStatsModal(ctxTargetItem);
 
 /* ============================================================
-    MOVER / ELIMINAR ÍTEMS
+    MOVER / ELIMINAR
 ============================================================ */
-function moveItem(item, toWhere) {
-    if (!personajeActual) return;
-    const pj = personajes[personajeActual];
-
-    const invIdx = pj.items.findIndex(i => i.id === item.id);
-    const fromWhere   = invIdx !== -1 ? "inv" : "baul";
-    const sourceList  = fromWhere === "inv" ? pj.items : pj.baul.items;
-    const targetList  = toWhere  === "inv" ? pj.items : pj.baul.items;
-    const targetSlots = toWhere  === "inv" ? pj.slots  : pj.baul.slots;
-
-    if (fromWhere === toWhere) { ctxMenu.style.display = 'none'; return; }
-
-    const srcIdx = sourceList.findIndex(i => i.id === item.id);
-    if (srcIdx === -1) { alert("Error: Ítem no encontrado."); ctxMenu.style.display = 'none'; return; }
-
-    sourceList.splice(srcIdx, 1);
-
-    const freeIndex = findSpace(targetSlots, targetList, item.slotsUsados);
-    if (freeIndex !== -1) {
-        item.pos = freeIndex;
-        targetList.push(item);
-        document.getElementById("sndMove").play();
-    } else {
-        // Devolver al origen
-        const fallbackList  = fromWhere === "inv" ? pj.items : pj.baul.items;
-        const fallbackSlots = fromWhere === "inv" ? pj.slots  : pj.baul.slots;
-        const fallbackIdx   = findSpace(fallbackSlots, fallbackList, item.slotsUsados);
-        item.pos = fallbackIdx !== -1 ? fallbackIdx : 0;
-        fallbackList.push(item);
-        alert(`❌ No hay espacio en ${toWhere === 'inv' ? 'el inventario' : 'el baúl'}. Ítem devuelto.`);
-    }
-
-    saveData();
-    renderPersonajeActual();
-    ctxMenu.style.display = 'none';
+function moveItem(item,toWhere){
+    if(!personajeActual)return;const pj=personajes[personajeActual];
+    const invIdx=pj.items.findIndex(i=>i.id===item.id),from=invIdx!==-1?"inv":"baul";
+    const src=from==="inv"?pj.items:pj.baul.items,tgt=toWhere==="inv"?pj.items:pj.baul.items,tSlots=toWhere==="inv"?pj.slots:pj.baul.slots;
+    if(from===toWhere){ctxMenu.style.display='none';return;}
+    const si=src.findIndex(i=>i.id===item.id);if(si===-1){alert("Error.");ctxMenu.style.display='none';return;}
+    src.splice(si,1);const free=findSpace(tSlots,tgt,item.slotsUsados);
+    if(free!==-1){item.pos=free;tgt.push(item);document.getElementById("sndMove").play();}
+    else{const fb=from==="inv"?pj.items:pj.baul.items,fbs=from==="inv"?pj.slots:pj.baul.slots,fi=findSpace(fbs,fb,item.slotsUsados);item.pos=fi!==-1?fi:0;fb.push(item);alert(`❌ Sin espacio. Ítem devuelto.`);}
+    saveData();renderPersonajeActual();ctxMenu.style.display='none';
 }
-
-function deleteItem(item, from) {
-    if (!personajeActual) return;
-    if (!confirm(`¿Eliminar "${item.nombre}"?`)) return;
-
-    const pj   = personajes[personajeActual];
-    const list = from === "inv" ? pj.items : pj.baul.items;
-    const idx  = list.findIndex(i => i.id === item.id);
-
-    if (idx !== -1) {
-        list.splice(idx, 1);
-        saveData();
-        renderPersonajeActual();
-        document.getElementById("sndMove").play();
-    }
-    ctxMenu.style.display = 'none';
+function deleteItem(item,from){
+    if(!personajeActual)return;if(!confirm(`¿Eliminar "${item.nombre}"?`))return;
+    const pj=personajes[personajeActual],list=from==="inv"?pj.items:pj.baul.items,idx=list.findIndex(i=>i.id===item.id);
+    if(idx!==-1){list.splice(idx,1);saveData();renderPersonajeActual();document.getElementById("sndMove").play();}
+    ctxMenu.style.display='none';
 }
 
 /* ============================================================
-    MODAL DE STATS
+    STATS MODAL
 ============================================================ */
-const statsModal            = document.getElementById("statsModal");
-const statsModalTitle       = document.getElementById("statsModalTitle");
-const statsModalImage       = document.getElementById("statsModalImage");
-const statsInputsContainer  = document.getElementById("statsInputsContainer");
-const statsModalDescription = document.getElementById("statsModalDescription");
-
-document.getElementById("btnCloseStats").onclick = () => { statsModal.style.display = 'none'; editingItem = null; };
-document.getElementById("btnSaveStats").onclick  = saveStatsChanges;
-
-function openStatsModal(item) {
-    ctxMenu.style.display = 'none';
-    editingItem = item;
-
-    statsModalTitle.textContent = `Mejorar/Ver: ${item.nombre}`;
-    statsModalImage.src = item.img || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-    statsModalImage.style.display = item.img ? 'block' : 'none';
-    statsModalDescription.value = item.description || "";
-
-    statsInputsContainer.innerHTML = "";
-
-    if (Object.keys(item.stats).length > 0) {
-        for (const [key, value] of Object.entries(item.stats)) {
-            const group = document.createElement("div");
-            group.className = "stat-input-group";
-
-            const label = document.createElement("label");
-            label.textContent = key.replace(/_/g, ' ').toUpperCase();
-            label.htmlFor = `stat-input-${key}`;
-
-            const input = document.createElement("input");
-            input.type = "number";
-            input.id = `stat-input-${key}`;
-            input.dataset.statKey = key;
-            input.value = value;
-            input.min = "0";
-
-            group.appendChild(label);
-            group.appendChild(input);
-            statsInputsContainer.appendChild(group);
-        }
-    } else {
-        statsInputsContainer.innerHTML = "<p style='color:#777;'>Este ítem no tiene estadísticas editables.</p>";
-    }
-
-    statsModal.style.display = 'flex';
+const statsModal=document.getElementById("statsModal"),statsModalTitle=document.getElementById("statsModalTitle"),
+      statsModalImage=document.getElementById("statsModalImage"),statsInputsContainer=document.getElementById("statsInputsContainer"),
+      statsModalDescription=document.getElementById("statsModalDescription");
+document.getElementById("btnCloseStats").onclick=()=>{statsModal.style.display='none';editingItem=null;};
+document.getElementById("btnSaveStats").onclick=saveStatsChanges;
+function openStatsModal(item){
+    ctxMenu.style.display='none';editingItem=item;
+    statsModalTitle.textContent=`Mejorar/Ver: ${item.nombre}`;
+    statsModalImage.src=item.img||'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+    statsModalImage.style.display=item.img?'block':'none';statsModalDescription.value=item.description||"";statsInputsContainer.innerHTML="";
+    if(Object.keys(item.stats).length>0){for(const[k,v]of Object.entries(item.stats)){const g=document.createElement("div");g.className="stat-input-group";const l=document.createElement("label");l.textContent=k.replace(/_/g,' ').toUpperCase();l.htmlFor=`si-${k}`;const inp=document.createElement("input");inp.type="number";inp.id=`si-${k}`;inp.dataset.statKey=k;inp.value=v;inp.min="0";g.appendChild(l);g.appendChild(inp);statsInputsContainer.appendChild(g);}}
+    else statsInputsContainer.innerHTML="<p style='color:#777;'>Sin estadísticas.</p>";
+    statsModal.style.display='flex';
 }
-
-function saveStatsChanges() {
-    if (!editingItem) return;
-    editingItem.description = statsModalDescription.value.trim();
-
-    statsInputsContainer.querySelectorAll('input[type="number"]').forEach(input => {
-        const key = input.dataset.statKey;
-        const val = parseInt(input.value);
-        if (!isNaN(val) && val >= 0) {
-            editingItem.stats[key] = val;
-        } else {
-            alert(`Valor inválido para ${key.toUpperCase().replace(/_/g, ' ')}.`);
-        }
-    });
-
-    saveData();
-    renderPersonajeActual();
-    statsModal.style.display = 'none';
-    editingItem = null;
-    alert("¡Mejoras y descripción guardadas!");
+function saveStatsChanges(){
+    if(!editingItem)return;editingItem.description=statsModalDescription.value.trim();
+    statsInputsContainer.querySelectorAll('input[type="number"]').forEach(inp=>{const v=parseInt(inp.value);if(!isNaN(v)&&v>=0)editingItem.stats[inp.dataset.statKey]=v;else alert(`Valor inválido: ${inp.dataset.statKey.toUpperCase().replace(/_/g,' ')}`);});
+    saveData();renderPersonajeActual();statsModal.style.display='none';editingItem=null;alert("¡Mejoras guardadas!");
 }
 
 /* ============================================================
     IMPORTAR AL BAÚL
 ============================================================ */
-function handleBaulImport(event) {
-    if (!personajeActual) { alert("Selecciona un personaje primero."); event.target.value = ''; return; }
-
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        try {
-            const boughtItems = JSON.parse(e.target.result);
-            if (!Array.isArray(boughtItems)) { alert("Formato de archivo inválido."); return; }
-
-            const pj = personajes[personajeActual];
-            let added = 0, uid = Date.now();
-
-            for (const item of boughtItems) {
-                const slots = item.slotsUsados || 1;
-                const free  = findSpace(pj.baul.slots, pj.baul.items, slots);
-                if (free === -1) { alert(`Baúl lleno. No se pudo importar: ${item.nombre}`); break; }
-
-                pj.baul.items.push({
-                    id: uid++, nombre: item.nombre, slotsUsados: slots,
-                    img: item.img || '', pos: free,
-                    cantidad: item.cantidad || 1,
-                    itemType: item.itemType || 'generic',
-                    stats: item.stats || {},
-                    description: item.description || ''
-                });
-                added++;
-            }
-
-            if (added > 0) { saveData(); renderPersonajeActual(); alert(`¡${added} ítem(s) importado(s) al baúl!`); }
-            else alert("No se importó ningún ítem.");
-
-        } catch { alert("Error al leer el archivo."); }
-    };
-    reader.readAsText(file);
-    event.target.value = '';
+function handleBaulImport(event){
+    if(!personajeActual){alert("Seleccioná un personaje primero.");event.target.value='';return;}
+    const file=event.target.files[0];if(!file)return;
+    const r=new FileReader();
+    r.onload=(e)=>{try{const its=JSON.parse(e.target.result);if(!Array.isArray(its)){alert("Formato inválido.");return;}
+    const pj=personajes[personajeActual];let added=0,uid=Date.now();
+    for(const it of its){const s=it.slotsUsados||1,free=findSpace(pj.baul.slots,pj.baul.items,s);if(free===-1){alert(`Baúl lleno. No se importó: ${it.nombre}`);break;}pj.baul.items.push({id:uid++,nombre:it.nombre,slotsUsados:s,img:it.img||'',pos:free,cantidad:it.cantidad||1,itemType:it.itemType||'generic',stats:it.stats||{},description:it.description||''});added++;}
+    if(added>0){saveData();renderPersonajeActual();alert(`¡${added} ítem(s) importado(s)!`);}else alert("No se importó nada.");}catch{alert("Error al leer.");}};
+    r.readAsText(file);event.target.value='';
 }
 
 /* ============================================================
     VOLUMEN
 ============================================================ */
-function toggleVolume() {
-    const bgm = document.getElementById("bgm");
-    const btn = document.getElementById("btnToggleVolume");
-    if (bgm.volume > 0.4)     { bgm.volume = 0.1; btn.textContent = '🔈'; }
-    else if (bgm.volume > 0)  { bgm.volume = 0.5; btn.textContent = '🔉'; }
-    else                      { bgm.volume = 0.0; btn.textContent = '🔇'; }
-}
-document.getElementById("btnToggleVolume").onclick = toggleVolume;
+function toggleVolume(){const bgm=document.getElementById("bgm"),btn=document.getElementById("btnToggleVolume");if(bgm.volume>0.4){bgm.volume=0.1;btn.textContent='🔈';}else if(bgm.volume>0){bgm.volume=0.5;btn.textContent='🔉';}else{bgm.volume=0.0;btn.textContent='🔇';}}
+document.getElementById("btnToggleVolume").onclick=toggleVolume;
 
 /* ============================================================
-    INICIALIZACIÓN
+    INIT
 ============================================================ */
-renderListaPersonajes();
-renderNotasList();
-
-const bgm = document.getElementById("bgm");
-bgm.volume = 0.5;
-document.getElementById("btnToggleVolume").textContent = '🔉';
-
-document.onclick = () => { if (bgm.paused) bgm.play().catch(() => {}); };
-
+renderListaPersonajes();renderNotasList();
+const bgm=document.getElementById("bgm");bgm.volume=0.5;document.getElementById("btnToggleVolume").textContent='🔉';
+document.onclick=()=>{if(bgm.paused)bgm.play().catch(()=>{});};
 </script>
-
 </body>
 </html>
