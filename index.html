@@ -2087,6 +2087,221 @@ document.getElementById("btnActualizarBaul").onclick = () => {
 };
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ============================================================
+   NEOMUTATION PDA — SNIPPETS PARA AGREGAR AL SCRIPT
+   Copiá cada bloque donde corresponda en tu script existente
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   1. BOOT BAR — reemplazá tu función de boot existente
+      o asegurate de que llame a "bootProgressBar" como id
+   ------------------------------------------------------------ */
+function iniciarBootScreen() {
+    const screen   = document.getElementById('pda-boot-screen');
+    const bar      = document.getElementById('bootProgressBar');
+    if (!screen || !bar) return;
+
+    let progress = 0;
+    const interval = setInterval(() => {
+        // Avanza rápido al principio, lento al final (más realista)
+        const step = progress < 70 ? Math.random() * 8 + 4 : Math.random() * 2 + 0.5;
+        progress = Math.min(progress + step, 100);
+        bar.style.width = progress + '%';
+
+        if (progress >= 100) {
+            clearInterval(interval);
+            setTimeout(() => {
+                screen.style.transition = 'opacity 0.6s ease';
+                screen.style.opacity    = '0';
+                setTimeout(() => { screen.style.display = 'none'; }, 600);
+            }, 400);
+        }
+    }, 80);
+}
+
+// Llamala al cargar la página:
+document.addEventListener('DOMContentLoaded', iniciarBootScreen);
+
+
+/* ------------------------------------------------------------
+   2. AUDIO PLAYER CUSTOM para notas
+      Ponelo en la sección donde ya manejás noteAudioUpload
+   ------------------------------------------------------------ */
+(function initNoteAudio() {
+    const uploadInput  = document.getElementById('noteAudioUpload');
+    const wrapper      = document.getElementById('audioPlayerWrapper');
+    const audioEl      = document.getElementById('noteAudioPlayer');
+    const btnPlay      = document.getElementById('audioBtnPlay');
+    const progressFill = document.getElementById('audioProgress');
+    const timeLabel    = document.getElementById('audioTime');
+    const track        = document.querySelector('.audio-track');
+
+    if (!uploadInput || !audioEl) return;
+
+    // Cuando el usuario elige un archivo de audio
+    uploadInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const url = URL.createObjectURL(file);
+        audioEl.src = url;
+        wrapper.style.display = 'block';
+        btnPlay.textContent = '▶';
+        btnPlay.classList.remove('playing');
+        progressFill.style.width = '0%';
+        timeLabel.textContent = '0:00';
+    });
+
+    // Play / Pause
+    btnPlay.addEventListener('click', () => {
+        if (!audioEl.src) return;
+        if (audioEl.paused) {
+            audioEl.play();
+            btnPlay.textContent = '⏸';
+            btnPlay.classList.add('playing');
+        } else {
+            audioEl.pause();
+            btnPlay.textContent = '▶';
+            btnPlay.classList.remove('playing');
+        }
+    });
+
+    // Actualizar barra de progreso
+    audioEl.addEventListener('timeupdate', () => {
+        if (!audioEl.duration) return;
+        const pct = (audioEl.currentTime / audioEl.duration) * 100;
+        progressFill.style.width = pct + '%';
+
+        const m = Math.floor(audioEl.currentTime / 60);
+        const s = Math.floor(audioEl.currentTime % 60).toString().padStart(2, '0');
+        timeLabel.textContent = `${m}:${s}`;
+    });
+
+    // Seek al hacer click en la barra
+    if (track) {
+        track.addEventListener('click', (e) => {
+            if (!audioEl.duration) return;
+            const rect = track.getBoundingClientRect();
+            const pct  = (e.clientX - rect.left) / rect.width;
+            audioEl.currentTime = pct * audioEl.duration;
+        });
+    }
+
+    // Al terminar
+    audioEl.addEventListener('ended', () => {
+        btnPlay.textContent = '▶';
+        btnPlay.classList.remove('playing');
+        progressFill.style.width = '0%';
+    });
+})();
+
+
+/* ------------------------------------------------------------
+   3. MOBILE LONG-PRESS para abrir el Action Sheet en celu
+      Agregá esto donde creás los elementos .item en el grid
+      (o en la función que renderiza el inventario)
+
+      USO: al crear cada .item, llamá:
+        agregarLongPress(elementoItem, datosItem);
+   ------------------------------------------------------------ */
+function agregarLongPress(elemento, itemData) {
+    let timer = null;
+    const DELAY = 500; // ms para considerar "long press"
+
+    // Touch — móvil
+    elemento.addEventListener('touchstart', (e) => {
+        timer = setTimeout(() => {
+            e.preventDefault();
+            abrirPanelMovil(itemData); // tu función existente
+        }, DELAY);
+    }, { passive: false });
+
+    elemento.addEventListener('touchend',   () => clearTimeout(timer));
+    elemento.addEventListener('touchmove',  () => clearTimeout(timer));
+    elemento.addEventListener('touchcancel',() => clearTimeout(timer));
+
+    // Desktop — click derecho (contextmenu)
+    // (esto probablemente ya lo tenés, pero por si acaso)
+    elemento.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        const menu = document.getElementById('contextMenu');
+        menu.style.left = e.clientX + 'px';
+        menu.style.top  = e.clientY  + 'px';
+        menu.classList.add('visible');
+        const nameEl = document.getElementById('ctxItemName');
+        if (nameEl && itemData) nameEl.textContent = itemData.nombre || '—';
+    });
+}
+
+// Cerrá el context menu al hacer click en cualquier lado
+document.addEventListener('click', () => {
+    document.getElementById('contextMenu')?.classList.remove('visible');
+});
+
+
+/* ------------------------------------------------------------
+   4. HELPER — abrirPanelMovil
+      Adaptalo a tu estructura de datos si ya tenés una versión
+   ------------------------------------------------------------ */
+function abrirPanelMovil(itemData) {
+    window.itemSeleccionadoGlobal = itemData;
+    const title = document.getElementById('sheetItemTitle');
+    if (title) title.textContent = itemData?.nombre || 'OBJETO';
+    document.getElementById('mobileActionSheet')?.classList.add('active');
+}
+
+function cerrarPanelMovil() {
+    document.getElementById('mobileActionSheet')?.classList.remove('active');
+}
+
+
+/* ------------------------------------------------------------
+   5. STATS MODAL — abrir/cerrar con clase CSS en vez de display
+      Reemplazá tus llamadas a display:flex/none por esto
+   ------------------------------------------------------------ */
+function abrirStatsModal() {
+    document.getElementById('statsModal').classList.add('visible');
+}
+
+function cerrarStatsModal() {
+    document.getElementById('statsModal').classList.remove('visible');
+}
+
+document.getElementById('statsModal')?.addEventListener('click', function(e) {
+    if (e.target === this) cerrarStatsModal();
+});
+
+document.getElementById('btnCloseStats')?.addEventListener('click', cerrarStatsModal);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* ============================================================
     AGREGAR ÍTEM (Añadido campo Cantidad, TIPO/STATS y Descripción)
 ============================================================ */
