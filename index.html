@@ -1046,17 +1046,12 @@ input[type="file"] {
     </div>
 </div>
 
-<div id="mobileActionSheet" class="mobile-sheet">
-    <div class="sheet-overlay" onclick="cerrarPanelMovil()"></div>
-    <div class="sheet-content">
-        <div class="sheet-handle"></div>
-        <div id="sheetItemTitle" style="color: #00f2ff; font-weight: bold; margin-bottom: 20px; text-transform: uppercase;">Opciones de Equipo</div>
-        
-        <button onclick="abrirModalStats(itemSeleccionadoGlobal); cerrarPanelMovil();">📊 VER / MEJORAR STATS</button>
-        <button onclick="accionMoverAlBaul(); cerrarPanelMovil();">📦 MOVER AL BAÚL</button>
-        <button onclick="accionEliminar(); cerrarPanelMovil();" style="color: #ff4444; border-color: #ff4444;">🗑️ ELIMINAR OBJETO</button>
-        
-        <button onclick="cerrarPanelMovil()" class="btn-cancelar">CANCELAR</button>
+<div id="contextMenu" class="context-menu">
+    <div class="context-button">
+        <button type="button">📊 VER STATS</button>
+        <button type="button">📦 MOVER AL BAÚL</button>
+        <button type="button" style="color:red">🗑️ ELIMINAR</button>
+        <button type="button">CANCELAR</button>
     </div>
 </div>
 
