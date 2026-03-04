@@ -205,17 +205,89 @@ body {
 }
 
 
+.terminal-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(2, 8, 15, 0.95);
+    border-top: 2px solid #00f2ff;
+    padding: 15px;
+    box-sizing: border-box;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 -10px 20px rgba(0, 242, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.panel-header {
+    font-size: 10px;
+    color: #00f2ff;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: #555; /* Gris cuando no hay nada */
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.panel-buttons {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+}
+
+.panel-buttons button {
+    flex: 1;
+    background: rgba(0, 242, 255, 0.1);
+    border: 1px solid #00f2ff;
+    color: #fff;
+    padding: 12px 5px;
+    font-size: 11px;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* Cuando seleccionas algo, el panel brilla */
+.terminal-footer.active .status-dot {
+    background: #00f2ff;
+    box-shadow: 0 0 10px #00f2ff;
+}
+
+
 /* ---------- Menú de Contexto (REPARADO) ---------- */
 .context-menu {
-    display: none;
-    position: fixed;
-    z-index: 1000000 !important; /* Asegura que esté ARRIBA de todo */
-    pointer-events: auto !important; /* Obliga a que reciba toques */
+    position: fixed; /* Asegura que no se mueva con el scroll */
+    z-index: 10000;
+    display: none; /* Controlado por JS */
+    background: rgba(5, 15, 25, 0.98);
+    border: 2px solid #00f2ff;
+    padding: 10px;
+    min-width: 200px;
+    box-shadow: 0 0 30px rgba(0, 242, 255, 0.5);
+}
+
+.context-button {
+    display: grid;
+    grid-template-columns: 1fr; /* Lista vertical para mejor legibilidad */
+    gap: 8px;
 }
 
 .context-button button {
-    pointer-events: auto !important;
-    touch-action: manipulation; /* Optimiza para toques rápidos */
+    background: #000;
+    color: #00f2ff;
+    border: 1px solid #00f2ff;
+    padding: 8px;
+    text-transform: uppercase;
+    cursor: pointer;
 }
 
 .context-button button:hover {
@@ -1011,16 +1083,18 @@ input[type="file"] {
     </div>
 </div>
 
-<div id="contextMenu" class="context-menu">
-    <div class="context-button">
-        <button type="button">📊 VER STATS</button>
-        <button type="button">📦 MOVER AL BAÚL</button>
-        <button type="button" style="color:red">🗑️ ELIMINAR</button>
-        <button type="button">CANCELAR</button>
+
+<div id="fixedActionPanel" class="terminal-footer">
+    <div class="panel-header">
+        <span class="status-dot"></span> 
+        SISTEMA DE GESTIÓN: <span id="selectedItemName">NINGÚN OBJETO SELECCIONADO</span>
+    </div>
+    <div class="panel-buttons">
+        <button onclick="ejecutarAccion('stats')">📊 STATS / MEJORAR</button>
+        <button onclick="ejecutarAccion('baul')">📦 AL BAÚL</button>
+        <button onclick="ejecutarAccion('eliminar')" style="color: #ff0000; border-color: #550000;">🗑️ ELIMINAR</button>
     </div>
 </div>
-
-
 
 
 <!-- NUEVO: Modal para ver/editar Stats y Descripción -->
@@ -1046,12 +1120,17 @@ input[type="file"] {
     </div>
 </div>
 
-<div id="contextMenu" class="context-menu">
-    <div class="context-button">
-        <button type="button">📊 VER STATS</button>
-        <button type="button">📦 MOVER AL BAÚL</button>
-        <button type="button" style="color:red">🗑️ ELIMINAR</button>
-        <button type="button">CANCELAR</button>
+<div id="mobileActionSheet" class="mobile-sheet">
+    <div class="sheet-overlay" onclick="cerrarPanelMovil()"></div>
+    <div class="sheet-content">
+        <div class="sheet-handle"></div>
+        <div id="sheetItemTitle" style="color: #00f2ff; font-weight: bold; margin-bottom: 20px; text-transform: uppercase;">Opciones de Equipo</div>
+        
+        <button onclick="abrirModalStats(itemSeleccionadoGlobal); cerrarPanelMovil();">📊 VER / MEJORAR STATS</button>
+        <button onclick="accionMoverAlBaul(); cerrarPanelMovil();">📦 MOVER AL BAÚL</button>
+        <button onclick="accionEliminar(); cerrarPanelMovil();" style="color: #ff4444; border-color: #ff4444;">🗑️ ELIMINAR OBJETO</button>
+        
+        <button onclick="cerrarPanelMovil()" class="btn-cancelar">CANCELAR</button>
     </div>
 </div>
 
@@ -1154,6 +1233,67 @@ document.addEventListener('touchstart', function(e) {
         document.getElementById('contextMenu').style.display = 'none';
     }
 }, { passive: false }); // 'passive: false' permite usar preventDefault
+
+
+
+
+
+
+
+
+
+
+let itemSeleccionadoId = null;
+
+// 1. Esta función debe llamarse al tocar cualquier ítem
+// Agregá onclick="seleccionarParaPanel(this)" a tus ítems cuando los creas
+function seleccionarParaPanel(elemento) {
+    // Guardamos la referencia
+    itemSeleccionadoId = elemento;
+    
+    // Actualizamos el nombre en el panel
+    const nombre = elemento.querySelector('span')?.innerText || "OBJETO DESCONOCIDO";
+    document.getElementById('selectedItemName').innerText = nombre.toUpperCase();
+    
+    // Activamos visualmente el panel
+    document.getElementById('fixedActionPanel').classList.add('active');
+    
+    // Feedback táctil
+    if (navigator.vibrate) navigator.vibrate(30);
+}
+
+// 2. Función que ejecutan los botones del panel de abajo
+function ejecutarAccion(tipo) {
+    if (!itemSeleccionadoId) {
+        alert("POR FAVOR, SELECCIONE UN OBJETO PRIMERO.");
+        return;
+    }
+
+    if (tipo === 'stats') {
+        abrirModalStats(itemSeleccionadoId); // Tu función de stats
+    } else if (tipo === 'baul') {
+        moverAlBaul(itemSeleccionadoId); // Tu función de mover
+    } else if (tipo === 'eliminar') {
+        if(confirm("¿ELIMINAR OBJETO?")) {
+            itemSeleccionadoId.remove();
+            resetPanel();
+        }
+    }
+}
+
+function resetPanel() {
+    itemSeleccionadoId = null;
+    document.getElementById('selectedItemName').innerText = "NINGÚN OBJETO SELECCIONADO";
+    document.getElementById('fixedActionPanel').classList.remove('active');
+}
+
+
+
+
+
+
+
+
 
 // Vinculación: Asegúrate de que tus ítems tengan onclick="manejarClickItem(event, this)"
 
