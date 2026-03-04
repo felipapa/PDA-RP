@@ -1134,17 +1134,14 @@ input[type="file"] {
     </div>
 </div>
 
-<div id="mobileActionSheet" class="mobile-sheet">
-    <div class="sheet-overlay" onclick="cerrarPanelMovil()"></div>
-    <div class="sheet-content">
-        <div class="sheet-handle"></div>
-        <div id="sheetItemTitle" style="color: #00f2ff; font-weight: bold; margin-bottom: 20px; text-transform: uppercase;">Opciones de Equipo</div>
-        
-        <button onclick="abrirModalStats(itemSeleccionadoGlobal); cerrarPanelMovil();">📊 VER / MEJORAR STATS</button>
-        <button onclick="accionMoverAlBaul(); cerrarPanelMovil();">📦 MOVER AL BAÚL</button>
-        <button onclick="accionEliminar(); cerrarPanelMovil();" style="color: #ff4444; border-color: #ff4444;">🗑️ ELIMINAR OBJETO</button>
-        
-        <button onclick="cerrarPanelMovil()" class="btn-cancelar">CANCELAR</button>
+<div id="fixedActionPanel" class="terminal-footer">
+    <div class="panel-header" style="padding-bottom: 5px; border-bottom: 1px solid rgba(0,242,255,0.2);">
+        <span class="status-dot"></span> 
+        ID-SISTEMA: <span id="selectedItemName" style="font-weight: bold;">[ ESPERANDO SELECCIÓN ]</span>
+    </div>
+    <div class="panel-buttons" style="margin-top: 10px;">
+        <button onclick="ejecutarAccion('stats')">MODIFICAR STATS</button>
+        <button onclick="ejecutarAccion('eliminar')" style="color: #ff4444; border-color: #550000;">ELIMINAR</button>
     </div>
 </div>
 
