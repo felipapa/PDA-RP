@@ -630,6 +630,20 @@ body {
     transition: 0.2s;
 }
 
+/* Clase que se activa cuando el panel está listo */
+.terminal-footer.active {
+    background: rgba(0, 20, 30, 0.98);
+    border-top: 2px solid #00f2ff;
+    box-shadow: 0 -10px 30px rgba(0, 242, 255, 0.4);
+}
+
+/* Para que los botones se sientan que se pueden tocar */
+.panel-buttons button:active {
+    background: #00f2ff;
+    color: #000;
+}
+
+
 .label-file:hover {
     background: #00f2ff;
     color: #000;
@@ -1195,53 +1209,72 @@ const GAP_SIZE = 6;  
 
 
 
+// Variable global para el ítem activo
+let itemSeleccionadoId = null; 
 
-let itemSeleccionadoId = null;
+// ESCUCHADOR GLOBAL DE CLICS
+document.addEventListener('click', function(e) {
+    // Buscamos si el clic fue en un ítem o dentro de un ítem
+    const item = e.target.closest('.item');
+    
+    // Si tocamos un ítem...
+    if (item) {
+        // 1. Guardamos la referencia real del elemento HTML
+        itemSeleccionadoId = item;
+        
+        // 2. Quitamos el brillo de cualquier otro ítem seleccionado antes
+        document.querySelectorAll('.item').forEach(i => i.style.boxShadow = "none");
+        
+        // 3. Le ponemos un brillo cian al que tocamos para saber que está seleccionado
+        item.style.boxShadow = "0 0 15px #00f2ff";
+        
+        // 4. Actualizamos el nombre en el panel de abajo
+        const nombre = item.querySelector('span')?.innerText || "OBJETO";
+        const labelPanel = document.getElementById('selectedItemName');
+        if (labelPanel) {
+            labelPanel.innerText = nombre.toUpperCase();
+            labelPanel.style.color = "#00f2ff";
+        }
+        
+        // 5. Activamos el panel
+        document.getElementById('fixedActionPanel').classList.add('active');
+        
+        console.log("Ítem seleccionado listo para acción:", itemSeleccionadoId.id);
+    } 
+    // Si tocamos el botón de mejorar/eliminar, NO deseleccionamos nada
+    else if (e.target.closest('.terminal-footer')) {
+        return; 
+    }
+    // Si tocamos cualquier otra cosa (el fondo), deseleccionamos
+    else {
+        // resetPanel(); // Descomenta esta línea si querés que se limpie al tocar el fondo
+    }
+});
 
-// 1. Esta función debe llamarse al tocar cualquier ítem
-// Agregá onclick="seleccionarParaPanel(this)" a tus ítems cuando los creas
-function seleccionarParaPanel(elemento) {
-    // Guardamos la referencia
-    itemSeleccionadoId = elemento;
-    
-    // Actualizamos el nombre en el panel
-    const nombre = elemento.querySelector('span')?.innerText || "OBJETO DESCONOCIDO";
-    document.getElementById('selectedItemName').innerText = nombre.toUpperCase();
-    
-    // Activamos visualmente el panel
-    document.getElementById('fixedActionPanel').classList.add('active');
-    
-    // Feedback táctil
-    if (navigator.vibrate) navigator.vibrate(30);
-}
-
-// 2. Función que ejecutan los botones del panel de abajo
+// FUNCIÓN PARA LOS BOTONES DEL PANEL
 function ejecutarAccion(tipo) {
     if (!itemSeleccionadoId) {
-        alert("POR FAVOR, SELECCIONE UN OBJETO PRIMERO.");
+        alert("SISTEMA: SELECCIONE UN OBJETO EN EL INVENTARIO");
         return;
     }
 
     if (tipo === 'stats') {
-        abrirModalStats(itemSeleccionadoId); // Tu función de stats
-    } else if (tipo === 'baul') {
-        moverAlBaul(itemSeleccionadoId); // Tu función de mover
-    } else if (tipo === 'eliminar') {
-        if(confirm("¿ELIMINAR OBJETO?")) {
+        // Llamamos a tu función de modal pasándole el objeto seleccionado
+        if (typeof abrirModalStats === "function") {
+            abrirModalStats(itemSeleccionadoId);
+        } else {
+            console.error("La función abrirModalStats no existe.");
+        }
+    } 
+    else if (tipo === 'eliminar') {
+        if (confirm("¿ELIMINAR SUMINISTRO?")) {
             itemSeleccionadoId.remove();
-            resetPanel();
+            itemSeleccionadoId = null;
+            document.getElementById('selectedItemName').innerText = "NINGÚN OBJETO SELECCIONADO";
+            document.getElementById('fixedActionPanel').classList.remove('active');
         }
     }
 }
-
-function resetPanel() {
-    itemSeleccionadoId = null;
-    document.getElementById('selectedItemName').innerText = "NINGÚN OBJETO SELECCIONADO";
-    document.getElementById('fixedActionPanel').classList.remove('active');
-}
-
-
-
 
 
 
